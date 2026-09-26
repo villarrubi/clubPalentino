@@ -12,6 +12,8 @@ async function login(page: Page, role: "Alumnado" | "Profesor" | "Admin") {
 test("páginas públicas, contenido del curso, contacto y diseño adaptable", async ({
   page,
 }, testInfo) => {
+  // Static captures and contrast scans must include every section, not a mid-reveal frame.
+  await page.emulateMedia({ reducedMotion: "reduce" });
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   for (const route of ["/", "/escuela", "/contacto", "/noticias", "/torneos"]) {
@@ -75,6 +77,44 @@ test("páginas públicas, contenido del curso, contacto y diseño adaptable", as
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   expect(errors).toEqual([]);
+});
+
+test("scroll: entradas, profundidad, foco y preferencia de movimiento reducido", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  await expect(page.locator(".tiny-board")).toHaveCount(0);
+  const school = page.locator(".school-art");
+  await expect(school).toHaveClass(/reveal-pending/);
+  await school.scrollIntoViewIfNeeded();
+  await expect(school).not.toHaveClass(/reveal-pending/);
+  await expect(school).toHaveCSS("opacity", "1");
+  const board = page.locator(".school-board");
+  const transform = await board.evaluate(
+    (element) => getComputedStyle(element).transform,
+  );
+  await page.evaluate(() => scrollBy(0, 180));
+  await expect
+    .poll(() =>
+      board.evaluate((element) => getComputedStyle(element).transform),
+    )
+    .not.toBe(transform);
+  // Keyboard navigation reveals a destination immediately, even before scrolling to it.
+  const cta = page.locator(".contact-cta");
+  await expect(cta).toHaveClass(/reveal-pending/);
+  await cta.getByRole("link").focus();
+  await expect(cta).toHaveCSS("opacity", "1");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page.locator(".reveal-pending")).toHaveCount(0);
+  await expect(board).toHaveCSS("animation-name", "none");
+  await expect(page.locator(".hero-image")).toHaveCSS("animation-name", "none");
+  await page
+    .getByRole("navigation", { name: "Enlaces del club" })
+    .getByRole("link", { name: "Escuela Club Palentino" })
+    .click();
+  await expect(page.locator("main h1")).toHaveText("Escuela Club Palentino");
+  await expect(page.locator(".reveal-pending")).toHaveCount(0);
 });
 
 test("menú, enlaces profundos y página desconocida", async ({
@@ -151,13 +191,11 @@ test("profesor: subir, editar, descargar, buscar y eliminar materiales", async (
     .getByRole("button", { name: "Subir material", exact: true })
     .click();
   const dialog = page.getByRole("dialog");
-  await dialog
-    .locator("input[type=file]")
-    .setInputFiles({
-      name: "practica.pgn",
-      mimeType: "application/x-chess-pgn",
-      buffer: Buffer.from('[Event "Clase"]\n1. e4 e5 *'),
-    });
+  await dialog.locator("input[type=file]").setInputFiles({
+    name: "practica.pgn",
+    mimeType: "application/x-chess-pgn",
+    buffer: Buffer.from('[Event "Clase"]\n1. e4 e5 *'),
+  });
   await dialog.getByLabel("Título del material").fill("Finales de peones");
   await dialog.getByLabel("Tema", { exact: true }).fill("Finales");
   await dialog
@@ -228,13 +266,11 @@ test("validación de archivos y accesibilidad del formulario", async ({
     .getByRole("button", { name: "Subir material", exact: true })
     .click();
   const dialog = page.getByRole("dialog");
-  await dialog
-    .locator("input[type=file]")
-    .setInputFiles({
-      name: "programa.exe",
-      mimeType: "application/octet-stream",
-      buffer: Buffer.from("invalid"),
-    });
+  await dialog.locator("input[type=file]").setInputFiles({
+    name: "programa.exe",
+    mimeType: "application/octet-stream",
+    buffer: Buffer.from("invalid"),
+  });
   await expect(dialog.getByRole("alert")).toContainText("Formato no admitido");
   const a11y = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21aa"])

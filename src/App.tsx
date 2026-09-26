@@ -12,6 +12,7 @@ import { Home, Classes, Contact, Tournaments, News } from "./PublicPages";
 import { Campus, Login } from "./PrivatePages";
 import { Admin } from "./Admin";
 import { Intro, LinkButton, Logo, Loading } from "./components";
+import { useScrollReveal } from "./useScrollReveal";
 
 const navigation = [
   ["/", "Inicio"],
@@ -51,6 +52,7 @@ export default function App() {
   });
   const { session, ready, repository } = useClub();
   const main = useRef<HTMLElement>(null);
+  useScrollReveal(main, route);
   const menuButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     const navigate = () => {

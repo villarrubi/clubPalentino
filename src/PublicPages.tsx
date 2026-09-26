@@ -33,6 +33,7 @@ export function NewsFeature({ compact = false }: { compact?: boolean }) {
     <article className={`news-feature ${compact ? "news-compact" : ""}`}>
       <a
         className="news-art"
+        data-reveal="image"
         href={news.url}
         target="_blank"
         rel="noopener noreferrer"
@@ -47,7 +48,7 @@ export function NewsFeature({ compact = false }: { compact?: boolean }) {
           AJEDREZ EN PALENCIA <ArrowUpRight size={24} aria-hidden="true" />
         </span>
       </a>
-      <div className="news-copy">
+      <div className="news-copy" data-reveal data-reveal-delay="1">
         <div className="meta">
           <span className="tag">El club en la prensa</span>
           <time dateTime={news.date}>{formatDate(news.date)}</time>
@@ -155,10 +156,7 @@ export function Home() {
     <>
       <section className="hero container">
         <div className="hero-copy">
-          <p className="eyebrow">
-            <span className="tiny-board" aria-hidden="true" />
-            TU CLUB DE AJEDREZ EN PALENCIA
-          </p>
+          <p className="eyebrow">TU CLUB DE AJEDREZ EN PALENCIA</p>
           <h1>
             La próxima
             <br />
@@ -187,16 +185,18 @@ export function Home() {
           </div>
         </div>
         <div className="hero-visual">
-          <img
-            className="hero-image"
-            src={asset("ajedrez-hero.webp")}
-            srcSet={`${asset("ajedrez-hero-mobile.webp")} 800w, ${asset("ajedrez-hero.webp")} 1120w`}
-            sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1200px) 45vw, 580px"
-            alt="Piezas de ajedrez blancas y moradas sobre un tablero"
-            width="1024"
-            height="1280"
-            fetchPriority="high"
-          />
+          <div className="hero-image-frame">
+            <img
+              className="hero-image"
+              src={asset("ajedrez-hero.webp")}
+              srcSet={`${asset("ajedrez-hero-mobile.webp")} 800w, ${asset("ajedrez-hero.webp")} 1120w`}
+              sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1200px) 45vw, 580px"
+              alt="Piezas de ajedrez blancas y moradas sobre un tablero"
+              width="1024"
+              height="1280"
+              fetchPriority="high"
+            />
+          </div>
           <div className="hero-caption">
             <span>Club Palentino de Ajedrez</span>
             <span>Juntos, sobre el tablero.</span>
@@ -204,7 +204,7 @@ export function Home() {
         </div>
       </section>
       <nav className="quick-links container" aria-label="Descubre el club">
-        <a href="#/escuela">
+        <a href="#/escuela" data-reveal>
           <span className="quick-icon">
             <GraduationCap size={28} weight="light" />
           </span>
@@ -214,7 +214,7 @@ export function Home() {
           </span>
           <ArrowUpRight aria-hidden="true" />
         </a>
-        <a href="#/torneos">
+        <a href="#/torneos" data-reveal data-reveal-delay="1">
           <span className="quick-icon">
             <Trophy size={28} weight="light" />
           </span>
@@ -224,7 +224,7 @@ export function Home() {
           </span>
           <ArrowUpRight aria-hidden="true" />
         </a>
-        <a href="#/aula">
+        <a href="#/aula" data-reveal data-reveal-delay="2">
           <span className="quick-icon">
             <BookOpen size={28} weight="light" />
           </span>
@@ -236,7 +236,7 @@ export function Home() {
         </a>
       </nav>
       <section className="section container">
-        <div className="section-heading">
+        <div className="section-heading" data-reveal>
           <div>
             <p className="eyebrow">ACTUALIDAD DEL CLUB</p>
             <h2>
@@ -253,7 +253,7 @@ export function Home() {
       </section>
       <section className="school-section">
         <div className="container school-grid">
-          <div className="school-art" aria-hidden="true">
+          <div className="school-art" aria-hidden="true" data-reveal="image">
             <div className="school-board">
               {Array.from({ length: 16 }, (_, i) => (
                 <span
@@ -273,11 +273,11 @@ export function Home() {
               algo que aprender.
             </span>
           </div>
-          <div className="school-copy">
+          <div className="school-copy" data-reveal data-reveal-delay="1">
             <p className="eyebrow">ESCUELA CLUB PALENTINO</p>
             <h2>
               De tu primer movimiento
-              <br />a pensar un paso más allá.
+              <br /> a pensar un paso más allá.
             </h2>
             <p>
               Ajedrez para todas las edades y niveles. Aprende y comparte cada
@@ -301,7 +301,7 @@ export function Home() {
           </div>
         </div>
       </section>
-      <section className="section container">
+      <section className="section container" data-reveal>
         <div className="section-heading">
           <div>
             <p className="eyebrow">LA AGENDA</p>
@@ -313,7 +313,7 @@ export function Home() {
         </div>
         <TournamentList short />
       </section>
-      <section className="contact-cta container">
+      <section className="contact-cta container" data-reveal>
         <div>
           <p className="eyebrow">HABLEMOS DE AJEDREZ</p>
           <h2>Nos falta tu próxima jugada.</h2>
@@ -379,7 +379,7 @@ export function Classes() {
         </a>
       </div>
       <div className="course-grid">
-        <article className="course-card">
+        <article className="course-card" data-reveal>
           <div className="course-icon">
             <Chess weight="regular" />
           </div>
@@ -398,7 +398,11 @@ export function Classes() {
             Materiales de iniciación <ArrowRight aria-hidden="true" />
           </a>
         </article>
-        <article className="course-card course-advanced">
+        <article
+          className="course-card course-advanced"
+          data-reveal
+          data-reveal-delay="1"
+        >
           <div className="course-icon">
             <Chess weight="fill" />
           </div>
@@ -442,7 +446,7 @@ export function Classes() {
             espacio de convivencia.
           </p>
         </div>
-        <div className="school-facts">
+        <div className="school-facts" data-reveal>
           <div className="price-block">
             <span>Cuota del curso</span>
             <strong>
@@ -472,7 +476,7 @@ export function Classes() {
           </div>
         </div>
       </section>
-      <section className="enrollment-contact">
+      <section className="enrollment-contact" data-reveal>
         <div>
           <h2>Haz tu primera jugada.</h2>
           <p>
@@ -496,7 +500,7 @@ export function Classes() {
           </a>
         </div>
       </section>
-      <div className="student-callout">
+      <div className="student-callout" data-reveal>
         <LockKey size={30} aria-hidden="true" />
         <div>
           <h3>¿Ya eres alumno del club?</h3>
@@ -592,7 +596,7 @@ export function Contact() {
             preparado para que puedas revisarlo y enviarlo.
           </p>
         </section>
-        <aside className="contact-brand">
+        <aside className="contact-brand" data-reveal="image">
           <img
             src={asset("logo-palentino.jpg")}
             width="280"
