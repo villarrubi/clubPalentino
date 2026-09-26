@@ -2,19 +2,14 @@ import { useEffect, useState } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
-  BookOpen,
   CalendarBlank,
-  Trophy,
   MapPin,
   EnvelopeSimple,
   Clock,
   Phone,
   UsersThree,
-  GraduationCap,
   LockKey,
-  Check,
   WhatsappLogo,
-  Horse as Chess,
 } from "@phosphor-icons/react";
 import {
   Intro,
@@ -27,6 +22,8 @@ import {
 import { asset, news, formatDate, today, contact, school } from "./data";
 import { useClub } from "./context";
 import type { Tournament } from "./types";
+import { HomeHero, ChessJourney } from "./ChessJourney";
+import { ChessKnight } from "./ChessKnight";
 
 export function NewsFeature({ compact = false }: { compact?: boolean }) {
   return (
@@ -43,7 +40,7 @@ export function NewsFeature({ compact = false }: { compact?: boolean }) {
           <br />
           ALBERTO ACERO
         </span>
-        <Chess className="news-chess" weight="duotone" aria-hidden="true" />
+        <ChessKnight className="news-chess" ink />
         <span className="news-art-bottom">
           AJEDREZ EN PALENCIA <ArrowUpRight size={24} aria-hidden="true" />
         </span>
@@ -154,87 +151,8 @@ function TournamentList({ short = false }: { short?: boolean }) {
 export function Home() {
   return (
     <>
-      <section className="hero container">
-        <div className="hero-copy">
-          <p className="eyebrow">TU CLUB DE AJEDREZ EN PALENCIA</p>
-          <h1>
-            La próxima
-            <br />
-            jugada empieza
-            <br />
-            <span>contigo.</span>
-          </h1>
-          <p className="hero-description">
-            Un tablero, muchas formas de disfrutarlo.
-            <br className="desktop-break" /> Aprende, compite y comparte tu
-            pasión por el ajedrez.
-          </p>
-          <div className="button-row">
-            <LinkButton href="#/escuela">Descubre la escuela</LinkButton>
-            <a className="text-link" href="#/torneos">
-              Ver torneos <ArrowUpRight aria-hidden="true" />
-            </a>
-          </div>
-          <div className="hero-foot">
-            <UsersThree size={23} aria-hidden="true" />
-            <span>
-              Tu primera partida o tu próximo reto.
-              <br />
-              <strong>Aquí hay sitio para ti.</strong>
-            </span>
-          </div>
-        </div>
-        <div className="hero-visual">
-          <div className="hero-image-frame">
-            <img
-              className="hero-image"
-              src={asset("ajedrez-hero.webp")}
-              srcSet={`${asset("ajedrez-hero-mobile.webp")} 800w, ${asset("ajedrez-hero.webp")} 1120w`}
-              sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1200px) 45vw, 580px"
-              alt="Piezas de ajedrez blancas y moradas sobre un tablero"
-              width="1024"
-              height="1280"
-              fetchPriority="high"
-            />
-          </div>
-          <div className="hero-caption">
-            <span>Club Palentino de Ajedrez</span>
-            <span>Juntos, sobre el tablero.</span>
-          </div>
-        </div>
-      </section>
-      <nav className="quick-links container" aria-label="Descubre el club">
-        <a href="#/escuela" data-reveal>
-          <span className="quick-icon">
-            <GraduationCap size={28} weight="light" />
-          </span>
-          <span>
-            <strong>Aprende a tu ritmo</strong>
-            <small>Clases de iniciación y avanzado</small>
-          </span>
-          <ArrowUpRight aria-hidden="true" />
-        </a>
-        <a href="#/torneos" data-reveal data-reveal-delay="1">
-          <span className="quick-icon">
-            <Trophy size={28} weight="light" />
-          </span>
-          <span>
-            <strong>Nos vemos en el tablero</strong>
-            <small>Consulta los próximos torneos</small>
-          </span>
-          <ArrowUpRight aria-hidden="true" />
-        </a>
-        <a href="#/aula" data-reveal data-reveal-delay="2">
-          <span className="quick-icon">
-            <BookOpen size={28} weight="light" />
-          </span>
-          <span>
-            <strong>Sigue aprendiendo</strong>
-            <small>Tu espacio de materiales</small>
-          </span>
-          <ArrowUpRight aria-hidden="true" />
-        </a>
-      </nav>
+      <HomeHero />
+      <ChessJourney />
       <section className="section container">
         <div className="section-heading" data-reveal>
           <div>
@@ -250,56 +168,6 @@ export function Home() {
           </a>
         </div>
         <NewsFeature compact />
-      </section>
-      <section className="school-section">
-        <div className="container school-grid">
-          <div className="school-art" aria-hidden="true" data-reveal="image">
-            <div className="school-board">
-              {Array.from({ length: 16 }, (_, i) => (
-                <span
-                  key={i}
-                  className={
-                    (Math.floor(i / 4) + (i % 4)) % 2 ? "dark-square" : ""
-                  }
-                >
-                  {i === 6 && <Chess weight="fill" />}
-                  {i === 9 && <Chess weight="regular" />}
-                </span>
-              ))}
-            </div>
-            <span className="school-art-word">
-              Siempre hay
-              <br />
-              algo que aprender.
-            </span>
-          </div>
-          <div className="school-copy" data-reveal data-reveal-delay="1">
-            <p className="eyebrow">ESCUELA CLUB PALENTINO</p>
-            <h2>
-              De tu primer movimiento
-              <br /> a pensar un paso más allá.
-            </h2>
-            <p>
-              Ajedrez para todas las edades y niveles. Aprende y comparte cada
-              descubrimiento en la Escuela Club Palentino.
-            </p>
-            <ul className="check-list">
-              <li>
-                <Check aria-hidden="true" />
-                Iniciación y nivel avanzado
-              </li>
-              <li>
-                <Check aria-hidden="true" />
-                Materiales organizados por temas
-              </li>
-              <li>
-                <Check aria-hidden="true" />
-                Acceso a los dos niveles para todos los alumnos
-              </li>
-            </ul>
-            <LinkButton href="#/escuela">Conoce las clases</LinkButton>
-          </div>
-        </div>
       </section>
       <section className="section container" data-reveal>
         <div className="section-heading">
@@ -381,7 +249,7 @@ export function Classes() {
       <div className="course-grid">
         <article className="course-card" data-reveal>
           <div className="course-icon">
-            <Chess weight="regular" />
+            <ChessKnight ink />
           </div>
           <p className="eyebrow">LOS PRIMEROS PASOS</p>
           <h2>Iniciación</h2>
@@ -404,7 +272,7 @@ export function Classes() {
           data-reveal-delay="1"
         >
           <div className="course-icon">
-            <Chess weight="fill" />
+            <ChessKnight ink />
           </div>
           <p className="eyebrow">UN PASO MÁS ALLÁ</p>
           <h2>Avanzado</h2>

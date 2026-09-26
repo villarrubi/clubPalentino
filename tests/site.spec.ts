@@ -52,14 +52,7 @@ test("páginas públicas, contenido del curso, contacto y diseño adaptable", as
     page.getByRole("link", { name: "Enviar un correo" }),
   ).toHaveAttribute("href", /^mailto:clubpalentinoajedrez@gmail.com\?subject=/);
   await page.goto("/");
-  await expect(page.locator(".hero-image")).toBeVisible();
-  await expect
-    .poll(() =>
-      page
-        .locator(".hero-image")
-        .evaluate((image: HTMLImageElement) => image.naturalWidth),
-    )
-    .toBeGreaterThan(0);
+  await expect(page.locator(".hero-piece")).toBeVisible();
   await page.screenshot({
     path: testInfo.outputPath("inicio.png"),
     fullPage: true,
@@ -79,42 +72,59 @@ test("páginas públicas, contenido del curso, contacto y diseño adaptable", as
   expect(errors).toEqual([]);
 });
 
-test("scroll: entradas, profundidad, foco y preferencia de movimiento reducido", async ({
+test("scroll: caballo, capítulos, regreso y movimiento reducido", async ({
   page,
-}) => {
+}, testInfo) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
   await expect(page.locator(".tiny-board")).toHaveCount(0);
-  const school = page.locator(".school-art");
-  await expect(school).toHaveClass(/reveal-pending/);
-  await school.scrollIntoViewIfNeeded();
-  await expect(school).not.toHaveClass(/reveal-pending/);
-  await expect(school).toHaveCSS("opacity", "1");
-  const board = page.locator(".school-board");
-  const transform = await board.evaluate(
-    (element) => getComputedStyle(element).transform,
-  );
-  await page.evaluate(() => scrollBy(0, 180));
-  await expect
-    .poll(() =>
-      board.evaluate((element) => getComputedStyle(element).transform),
-    )
-    .not.toBe(transform);
-  // Keyboard navigation reveals a destination immediately, even before scrolling to it.
+  await expect(page.locator(".hero-piece")).toBeVisible();
+  await page
+    .getByRole("button", { name: "Cada partida tiene un comienzo" })
+    .click();
+  await expect(page.locator("#recorrido-titulo")).toBeFocused();
+  await expect(page).toHaveURL(/\/$/);
+  const journey = page.locator(".chess-journey");
+  const knight = page.locator(".journey-knight");
+  // Reaching each chapter changes the piece's actual board position, in both directions.
+  for (const step of [0, 1, 2, 1, 0]) {
+    await page.locator(`[data-chapter="${step}"]`).evaluate((element) => {
+      scrollTo({
+        top: element.getBoundingClientRect().top + scrollY - innerHeight * 0.4,
+        behavior: "instant",
+      });
+    });
+    await expect(journey).toHaveAttribute("data-active-step", String(step));
+    const [x, y] = [
+      [60, 340],
+      [100, 260],
+      [180, 220],
+    ][step];
+    await expect(knight).toHaveCSS(
+      "transform",
+      `matrix(1, 0, 0, 1, ${x}, ${y})`,
+    );
+    if (step === 2) {
+      await expect(page.locator(".journey-path.traced")).toHaveCount(2);
+      await page.screenshot({ path: testInfo.outputPath("recorrido.png") });
+    }
+  }
   const cta = page.locator(".contact-cta");
-  await expect(cta).toHaveClass(/reveal-pending/);
   await cta.getByRole("link").focus();
   await expect(cta).toHaveCSS("opacity", "1");
   await page.emulateMedia({ reducedMotion: "reduce" });
   await expect(page.locator(".reveal-pending")).toHaveCount(0);
-  await expect(board).toHaveCSS("animation-name", "none");
-  await expect(page.locator(".hero-image")).toHaveCSS("animation-name", "none");
+  await expect(knight).toHaveCSS("transition-duration", "0s");
+  await expect(page.locator(".journey-visual")).toHaveCSS("position", "static");
+  await expect(page.locator(".hero-piece")).toHaveCSS("animation-name", "none");
+  await page.goto("/#/escuela");
   await page
     .getByRole("navigation", { name: "Enlaces del club" })
-    .getByRole("link", { name: "Escuela Club Palentino" })
+    .getByRole("link", { name: "Contacto", exact: true })
     .click();
-  await expect(page.locator("main h1")).toHaveText("Escuela Club Palentino");
-  await expect(page.locator(".reveal-pending")).toHaveCount(0);
+  await expect(page.locator("main h1")).toHaveText("Hablemos de ajedrez.");
+  await page.goto("/");
+  await expect(journey).toHaveAttribute("data-active-step", "0");
 });
 
 test("menú, enlaces profundos y página desconocida", async ({

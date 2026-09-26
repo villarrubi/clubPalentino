@@ -1,6 +1,6 @@
-# Próxima dirección visual: una partida empieza aquí
+# Dirección visual implementada: una partida empieza aquí
 
-Investigación solicitada el 26 de septiembre de 2026. Esta es una propuesta para una siguiente iteración; la secuencia narrativa descrita aquí todavía no está implementada.
+Investigación y propuesta aprobadas por el usuario el 26 de septiembre de 2026. La portada abierta y el recorrido del caballo descritos aquí están implementados.
 
 ## Referencias revisadas
 
@@ -11,16 +11,16 @@ Investigación solicitada el 26 de septiembre de 2026. Esta es una propuesta par
 - [Refero Styles — teenage engineering](https://styles.refero.design/style/aecf9dda-5cba-4dc7-9e73-59b65d895cdf): protagonismo del objeto y contraste entre grandes superficies claras y oscuras. Interesa el encuadre de las piezas; no se propone importar su tipografía fina y pequeña.
 - [Refero Styles — Cursor](https://styles.refero.design/style/4e3b4717-84c8-4599-baaf-a343c3d619b6): fondos cálidos y tratamiento editorial. Referencia secundaria de superficies y ritmo.
 
-## Concepto recomendado
+## Concepto aplicado
 
 La portada presenta al club mediante tres momentos: **Aprende, Juega, Comparte**. Un caballo recorre tres posiciones legales (a1 → b3 → d4) en un tablero ilustrado, coordinado con el scroll y los mensajes. Una composición propia que conecta la animación con el ajedrez.
 
 - Portada más abierta, con título de mayor personalidad y una pieza protagonista fuera del encuadre rectangular convencional.
-- Una única secuencia breve de tablero, con lectura directa de los tres mensajes y enlaces a la escuela, torneos y contacto. En escritorio se puede mantener la ilustración a la vista durante esos tres momentos; en móvil, composición compacta y recorrido normal.
+- Una única secuencia breve de tablero, con lectura directa de los tres mensajes y enlaces a la escuela, torneos y contacto. En escritorio se mantiene la ilustración a la vista durante esos tres momentos; en móvil, composición compacta y recorrido normal.
 - Marfil y azul tinta como base; una sección azul profundo para cambiar el ritmo, con el morado del escudo como identidad puntual.
 - Noticias con jerarquía de revista, alternando tamaños y posiciones cuando exista más contenido. Sin inventar noticias, cifras ni torneos.
 - Movimiento coordinado entre pieza y texto; el resto de la interfaz conserva transiciones sencillas. Controles estables, foco visible y alternativa estática con movimiento reducido.
 
-## Base implementada en esta revisión
+## Implementación
 
-Eliminación del pequeño icono de tablero del antetítulo. Entradas al hacer scroll, profundidad en la fotografía, tablero y caballo de noticias; pequeños movimientos de los iconos al pasar el puntero. Implementación nativa, sin instalar Motion ni copiar componentes de terceros. Comprobada en escritorio y móvil, con teclado y movimiento reducido.
+Eliminación del pequeño icono del antetítulo y de los adornos de la cabecera anterior. Ilustración propia de una pieza de ajedrez en lugar del icono de cabeza de caballo. Entradas al hacer scroll, profundidad en la pieza y tablero de portada, y desplazamiento entre las casillas a1, b3 y d4 coordinado con los capítulos. Implementación nativa, sin instalar Motion ni copiar componentes de terceros. Comprobada en escritorio y móvil, con teclado y movimiento reducido.
