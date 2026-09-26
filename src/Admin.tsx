@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import {
   Plus,
+  Newspaper,
   PencilSimple,
   Trash,
   UploadSimple,
@@ -23,6 +24,7 @@ import { FileIcon } from "./PrivatePages";
 import {
   courseNames,
   roleNames,
+  type NewsArticle,
   type Material,
   type MaterialInput,
   type Tournament,
@@ -31,6 +33,7 @@ import {
 } from "./types";
 import { acceptFiles, validateFile } from "./repository";
 import { fileSize, formatDate } from "./data";
+import { NewsForm } from "./NewsForm";
 
 function MaterialForm({
   material,
@@ -313,17 +316,21 @@ function TournamentForm({
   );
 }
 type Editor =
+  | { type: "news"; item?: NewsArticle }
   | { type: "material"; item?: Material }
   | { type: "tournament"; item?: Tournament }
   | null;
 export function Admin() {
   const { repository, session, logout, notify } = useClub();
-  const [tab, setTab] = useState<"materials" | "tournaments">("materials");
+  const [tab, setTab] = useState<"materials" | "tournaments" | "news">(
+    "materials",
+  );
   const [materials, setMaterials] = useState<Material[]>([]);
+  const [news, setNews] = useState<NewsArticle[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [editor, setEditor] = useState<Editor>(null);
   const [deleting, setDeleting] = useState<{
-    type: "material" | "tournament";
+    type: "material" | "tournament" | "news";
     id: string;
     title: string;
   } | null>(null);
@@ -343,11 +350,13 @@ export function Admin() {
       session?.role === "admin"
         ? repository.tournaments()
         : Promise.resolve([]),
+      session?.role === "admin" ? repository.news() : Promise.resolve([]),
     ])
-      .then(([materials, tournaments]) => {
+      .then(([materials, tournaments, news]) => {
         if (active) {
           setMaterials(materials);
           setTournaments(tournaments);
+          setNews(news);
         }
       })
       .catch((error) => {
@@ -371,6 +380,8 @@ export function Admin() {
     try {
       if (deleting.type === "material")
         await repository.deleteMaterial(deleting.id);
+      else if (deleting.type === "news")
+        await repository.deleteNews(deleting.id);
       else await repository.deleteTournament(deleting.id);
       setDeleting(null);
       setRevision((n) => n + 1);
@@ -408,7 +419,7 @@ export function Admin() {
       >
         <p>
           {session?.role === "admin"
-            ? "Gestiona los materiales de las clases y los torneos del club."
+            ? "Gestiona los materiales, los torneos y las noticias del club."
             : "Sube, organiza y actualiza los materiales de tus clases."}
         </p>
       </Intro>
@@ -433,15 +444,36 @@ export function Admin() {
               Torneos
             </button>
           )}
+          {session?.role === "admin" && (
+            <button
+              aria-pressed={tab === "news"}
+              className={tab === "news" ? "selected" : ""}
+              onClick={() => setTab("news")}
+            >
+              <Newspaper aria-hidden="true" />
+              Noticias
+            </button>
+          )}
         </div>
         <button
           className="button"
           onClick={() =>
-            setEditor({ type: tab === "materials" ? "material" : "tournament" })
+            setEditor({
+              type:
+                tab === "materials"
+                  ? "material"
+                  : tab === "news"
+                    ? "news"
+                    : "tournament",
+            })
           }
         >
           <Plus aria-hidden="true" />
-          {tab === "materials" ? "Subir material" : "Nuevo torneo"}
+          {tab === "materials"
+            ? "Subir material"
+            : tab === "news"
+              ? "Nueva noticia"
+              : "Nuevo torneo"}
         </button>
       </div>
       {loading ? (
@@ -530,6 +562,72 @@ export function Admin() {
             </div>
           )}
         </>
+      ) : tab === "news" ? (
+        !news.length ? (
+          <Empty
+            icon={<Newspaper size={32} />}
+            title="Las noticias empiezan aquí"
+          >
+            Crea una noticia y acompáñala con la foto que prefieras.
+          </Empty>
+        ) : (
+          <div className="management-list">
+            {[...news]
+              .sort(
+                (a, b) =>
+                  b.date.localeCompare(a.date) ||
+                  b.updatedAt.localeCompare(a.updatedAt),
+              )
+              .map((article) => (
+                <article className="material-row" key={article.id}>
+                  {article.imageUrl ? (
+                    <img
+                      className="news-admin-thumb"
+                      src={article.imageUrl}
+                      alt=""
+                    />
+                  ) : (
+                    <span className="file-icon">
+                      <Newspaper />
+                    </span>
+                  )}
+                  <div className="material-description">
+                    <h3>{article.title}</h3>
+                    <p>{formatDate(article.date)}</p>
+                    <a
+                      className="text-link"
+                      href={`#/noticias/${encodeURIComponent(article.id)}`}
+                    >
+                      Ver noticia
+                    </a>
+                  </div>
+                  <div className="row-actions">
+                    <button
+                      className="icon-button"
+                      aria-label={`Editar ${article.title}`}
+                      onClick={() => setEditor({ type: "news", item: article })}
+                    >
+                      <PencilSimple />
+                    </button>
+                    <button
+                      className="icon-button danger"
+                      aria-label={`Eliminar ${article.title}`}
+                      onClick={() => {
+                        setDeleteError("");
+                        setDeleting({
+                          type: "news",
+                          id: article.id,
+                          title: article.title,
+                        });
+                      }}
+                    >
+                      <Trash />
+                    </button>
+                  </div>
+                </article>
+              ))}
+          </div>
+        )
       ) : !tournaments.length ? (
         <Empty
           icon={<CalendarBlank size={32} />}
@@ -584,13 +682,17 @@ export function Admin() {
       {editor && (
         <Modal
           title={
-            editor.type === "material"
+            editor.type === "news"
               ? editor.item
-                ? "Editar material"
-                : "Subir material"
-              : editor.item
-                ? "Editar torneo"
-                : "Nuevo torneo"
+                ? "Editar noticia"
+                : "Nueva noticia"
+              : editor.type === "material"
+                ? editor.item
+                  ? "Editar material"
+                  : "Subir material"
+                : editor.item
+                  ? "Editar torneo"
+                  : "Nuevo torneo"
           }
           close={() => setEditor(null)}
         >
@@ -600,6 +702,8 @@ export function Admin() {
               topics={[...new Set(materials.map((m) => m.topic))]}
               done={done}
             />
+          ) : editor.type === "news" ? (
+            <NewsForm article={editor.item} done={done} />
           ) : (
             <TournamentForm tournament={editor.item} done={done} />
           )}

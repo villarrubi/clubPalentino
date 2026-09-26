@@ -73,6 +73,23 @@ Almacenar los binarios en un contenedor privado y los metadatos en una base de d
 
 Título, fecha real de calendario y lugar obligatorios. Hora, descripción y URL opcionales (cadena vacía). Fecha local en `YYYY-MM-DD`, hora `HH:mm`, zona Europe/Madrid. El enlace solo admite HTTPS. El frontend separa próximos y anteriores por fecha en Madrid. No interpreta HTML en los textos.
 
+## Noticias
+
+| Método y ruta | Permiso | Entrada y respuesta |
+| --- | --- | --- |
+| GET /news | Público | Array de noticias, incluido `imageUrl` público |
+| POST /news | Admin | Multipart con los campos de texto e `image` opcional; 204 |
+| PATCH /news/:id | Admin | Multipart con campos de texto e `image` opcional; 204 |
+| DELETE /news/:id | Admin | Borrar noticia y foto asociada; 204 |
+
+Campos de texto: `title` (obligatorio, hasta 160 caracteres), `date` (fecha real YYYY-MM-DD), `summary` (obligatorio, hasta 300), `content` (obligatorio, hasta 20000), `imageAlt` (hasta 200, obligatorio cuando hay foto), `source` (opcional, hasta 100) y `url` (opcional, solo HTTPS). Se muestran como texto, nunca como HTML. La publicación es inmediata; la fecha indica la fecha editorial, no programa una publicación futura.
+
+La lectura añade `id`, `imageUrl` (cadena vacía si no hay foto) y `updatedAt` (ISO 8601). La portada muestra la noticia más reciente; Noticias muestra todas, ordenadas por fecha y actualización. Cada noticia tiene su página `#/noticias/:id`. El enlace externo es adicional al texto propio.
+
+`image` admite JPEG, PNG y WebP de hasta 5 MB. Comprobar formato, contenido decodificable, tamaño y permisos en el servidor. Al editar sin imagen, conservar la foto anterior; al sustituirla, coordinar el reemplazo del archivo y los metadatos. Las fotos de noticias son públicas, a diferencia de los materiales. El servidor debe devolver URLs válidas para esas fotos y denegar cualquier escritura a visitantes, alumnos y profesores.
+
+En la demo se utiliza IndexedDB versión 2: añade noticias sin borrar materiales, archivos o torneos existentes. La noticia de prensa original se importa una vez al crear el almacén; su borrado no la vuelve a importar. Las fotos se guardan como data URLs locales. El modo remoto necesita implementar estos endpoints antes de activarlo; la migración local no carga noticias en un servidor.
+
 ## Errores y puesta en marcha
 
 - 401: sesión ausente/caducada o credenciales incorrectas.
@@ -82,4 +99,4 @@ Título, fecha real de calendario y lugar obligatorios. Hora, descripción y URL
 - 429: límite de solicitudes.
 - 5xx: error interno sin datos sensibles.
 
-El cliente muestra errores seguros y no convierte fallos remotos en datos locales. Antes de activar: probar acceso y revocación, negativa de acceso directo a binarios, denegación de escritura para alumnos, denegación de torneos para profesores, CORS/CSRF y recuperación de copias. El servidor debe probar estos permisos independientemente de lo que muestre la interfaz.
+El cliente muestra errores seguros y no convierte fallos remotos en datos locales. Antes de activar: probar acceso y revocación, negativa de acceso directo a binarios, denegación de escritura para alumnos, denegación de torneos y noticias para profesores, CORS/CSRF y recuperación de copias. El servidor debe probar estos permisos independientemente de lo que muestre la interfaz.

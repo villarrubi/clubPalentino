@@ -9,21 +9,49 @@ async function login(page: Page, role: "Alumnado" | "Profesor" | "Admin") {
   await expect(page).toHaveURL(role === "Alumnado" ? /#\/aula$/ : /#\/panel$/);
 }
 
+async function revealPage(page: Page) {
+  for (const element of await page.locator("[data-reveal]").all()) {
+    await element.scrollIntoViewIfNeeded();
+    await expect(element).not.toHaveClass(/reveal-pending/);
+  }
+  await page.evaluate(async () => {
+    await Promise.all(
+      document
+        .getAnimations()
+        .filter(
+          (animation) => animation.effect?.getTiming().iterations !== Infinity,
+        )
+        .map((animation) => animation.finished.catch(() => {})),
+    );
+    scrollTo({ top: 0, behavior: "instant" });
+  });
+}
+
 test("páginas públicas, contenido del curso, contacto y diseño adaptable", async ({
   page,
 }, testInfo) => {
-  // Static captures and contrast scans must include every section, not a mid-reveal frame.
-  await page.emulateMedia({ reducedMotion: "reduce" });
+  test.setTimeout(60000);
+  // Reveal the actual page before contrast scans and full-page captures.
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   for (const route of ["/", "/escuela", "/contacto", "/noticias", "/torneos"]) {
     await page.goto(`/#${route}`);
     await expect(page.locator("main h1")).toBeVisible();
+    await page.locator(".home-hero").evaluateAll(async (heroes) => {
+      await Promise.all(
+        heroes.flatMap((hero) =>
+          hero
+            .getAnimations({ subtree: true })
+            .map((animation) => animation.finished),
+        ),
+      );
+    });
     await expect
       .poll(() =>
         page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
       )
       .toBe(true);
+    await revealPage(page);
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
       .analyze();
@@ -37,6 +65,7 @@ test("páginas públicas, contenido del curso, contacto y diseño adaptable", as
   await expect(page.getByText("Viernes, de 19:00 a 20:00")).toBeVisible();
   await expect(page.getByText("30 €", { exact: false }).first()).toBeVisible();
   await expect(page.getByText("Maristas")).toHaveCount(0);
+  await revealPage(page);
   await page.screenshot({
     path: testInfo.outputPath("escuela.png"),
     fullPage: true,
@@ -52,7 +81,8 @@ test("páginas públicas, contenido del curso, contacto y diseño adaptable", as
     page.getByRole("link", { name: "Enviar un correo" }),
   ).toHaveAttribute("href", /^mailto:clubpalentinoajedrez@gmail.com\?subject=/);
   await page.goto("/");
-  await expect(page.locator(".hero-piece")).toBeVisible();
+  await revealPage(page);
+  await expect(page.locator(".hero-piece-entrance")).toHaveCSS("opacity", "1");
   await page.screenshot({
     path: testInfo.outputPath("inicio.png"),
     fullPage: true,
@@ -72,112 +102,76 @@ test("páginas públicas, contenido del curso, contacto y diseño adaptable", as
   expect(errors).toEqual([]);
 });
 
-test("scroll: caballo, capítulos, regreso y movimiento reducido", async ({
+test("entradas laterales de los tres capítulos y enlaces accesibles", async ({
   page,
 }, testInfo) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
-  await expect(page.locator(".tiny-board")).toHaveCount(0);
-  await expect(page.locator(".hero-piece")).toBeVisible();
-  await page
-    .getByRole("button", { name: "Cada partida tiene un comienzo" })
-    .click();
-  await expect(page.locator("#recorrido-titulo")).toBeFocused();
-  await expect(page).toHaveURL(/\/$/);
-  const journey = page.locator(".chess-journey");
-  const knight = page.locator(".journey-knight");
-  // Reaching each chapter changes the piece's actual board position, in both directions.
-  for (const step of [0, 1, 2, 1, 0]) {
-    await page.locator(`[data-chapter="${step}"]`).evaluate((element) => {
-      scrollTo({
-        top: element.getBoundingClientRect().top + scrollY - innerHeight * 0.4,
-        behavior: "instant",
-      });
-    });
-    await expect(journey).toHaveAttribute("data-active-step", String(step));
-    const [x, y] = [
-      [60, 340],
-      [100, 260],
-      [180, 220],
-    ][step];
-    await expect(knight).toHaveCSS(
-      "transform",
-      `matrix(1, 0, 0, 1, ${x}, ${y})`,
-    );
-    if (step === 2) {
-      await expect(page.locator(".journey-path.traced")).toHaveCount(2);
-      await page.screenshot({ path: testInfo.outputPath("recorrido.png") });
+  await expect(page.locator(".knight-illustration")).toHaveCount(1);
+  await expect(page.locator('img[src*="caballo-staunton"]')).toHaveCount(0);
+  const firstArt = page.locator('[data-chapter="0"] .chapter-art');
+  const firstCopy = page.locator('[data-chapter="0"] .chapter-copy');
+  await expect(firstArt).toHaveClass(/reveal-pending/);
+  expect(
+    await firstArt.evaluate(
+      (el) => new DOMMatrix(getComputedStyle(el).transform).m41,
+    ),
+  ).toBeLessThan(0);
+  expect(
+    await firstCopy.evaluate(
+      (el) => new DOMMatrix(getComputedStyle(el).transform).m41,
+    ),
+  ).toBeGreaterThan(0);
+  await expect(page.getByText("Cada partida tiene un comienzo")).toHaveCount(0);
+  await expect(
+    page.locator(".journey-board, .journey-notation, .journey-progress"),
+  ).toHaveCount(0);
+  for (const step of [0, 1, 2]) {
+    const chapter = page.locator(`[data-chapter="${step}"]`);
+    for (const selector of [".chapter-art", ".chapter-copy"]) {
+      const part = chapter.locator(selector);
+      await part.scrollIntoViewIfNeeded();
+      await expect(part).not.toHaveClass(/reveal-pending/);
+      await expect(part).toHaveCSS("transform", "none");
+      await expect(part).toHaveCSS("opacity", "1");
     }
+    await expect(chapter.getByRole("link")).toBeVisible();
   }
+  await page.screenshot({ path: testInfo.outputPath("recorrido.png") });
   const cta = page.locator(".contact-cta");
   await cta.getByRole("link").focus();
   await expect(cta).toHaveCSS("opacity", "1");
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(page.locator(".reveal-pending")).toHaveCount(0);
-  await expect(knight).toHaveCSS("transition-duration", "0s");
-  await expect(page.locator(".journey-visual")).toHaveCSS("position", "static");
-  await expect(page.locator(".hero-piece")).toHaveCSS("animation-name", "none");
-  await page.goto("/#/escuela");
-  await page
-    .getByRole("navigation", { name: "Enlaces del club" })
-    .getByRole("link", { name: "Contacto", exact: true })
-    .click();
-  await expect(page.locator("main h1")).toHaveText("Hablemos de ajedrez.");
-  await page.goto("/");
-  await expect(journey).toHaveAttribute("data-active-step", "0");
+  await page.locator('[data-chapter="0"] .journey-link').click();
+  await expect(page.locator("main h1")).toHaveText("Escuela Club Palentino");
+  await expect(page.locator(".knight-illustration")).toHaveCount(0);
 });
 
-test("activar animaciones con movimiento reducido: scroll real, pausa y persistencia", async ({
+test("apertura pausada y una sola animación sin selector ni preferencias guardadas", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
-  await expect(page.locator("html")).toHaveAttribute("data-motion", "reduced");
-  await expect(page.locator(".knight-photo")).toHaveAttribute(
-    "src",
-    /caballo-staunton\.webp$/,
+  await page.addInitScript(() =>
+    localStorage.setItem("palentino-motion", "reduced"),
   );
-  await expect
-    .poll(() =>
-      page
-        .locator(".knight-photo")
-        .evaluate((image: HTMLImageElement) => image.naturalWidth),
-    )
-    .toBeGreaterThan(0);
-  await page.getByRole("button", { name: "Activar animaciones" }).click();
+  await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
+  await expect(page.getByRole("button", { name: /animaciones/ })).toHaveCount(
+    0,
+  );
+  const entrance = page.locator(".hero-piece-entrance");
+  await expect(entrance).toHaveCSS("animation-duration", "2s");
+  await expect(entrance).toHaveCSS("animation-delay", "0.35s");
+  await expect(entrance).toHaveCSS("opacity", "1");
   const piece = page.locator(".hero-piece");
   const before = await piece.evaluate((el) => getComputedStyle(el).transform);
   await page.evaluate(() => scrollTo({ top: 350, behavior: "instant" }));
   await expect
     .poll(() => piece.evaluate((el) => getComputedStyle(el).transform))
     .not.toBe(before);
-  await page
-    .locator('[data-chapter="1"]')
-    .evaluate((el) =>
-      scrollTo({
-        top: el.getBoundingClientRect().top + scrollY - innerHeight * 0.4,
-        behavior: "instant",
-      }),
-    );
-  await expect(page.locator(".chess-journey")).toHaveAttribute(
-    "data-active-step",
-    "1",
-  );
-  await expect(page.locator(".journey-knight")).toHaveCSS(
-    "transform",
-    "matrix(1, 0, 0, 1, 100, 260)",
-  );
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
-  await page.getByRole("button", { name: "Pausar animaciones" }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-motion", "reduced");
-  const paused = await piece.evaluate((el) => getComputedStyle(el).transform);
-  await page.evaluate(() => scrollTo({ top: 450, behavior: "instant" }));
-  await expect(piece).toHaveCSS("transform", paused);
-  await expect(page.locator(".reveal-pending")).toHaveCount(0);
-  await page.reload();
-  await expect(page.locator("html")).toHaveAttribute("data-motion", "reduced");
+  await expect(page.getByRole("button", { name: /animaciones/ })).toHaveCount(
+    0,
+  );
 });
 
 test("menú, enlaces profundos y página desconocida", async ({

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
+  BookOpen,
+  Strategy,
   ArrowUpRight,
   CalendarBlank,
   MapPin,
@@ -19,56 +21,12 @@ import {
   ErrorMessage,
   TournamentCard,
 } from "./components";
-import { asset, news, formatDate, today, contact, school } from "./data";
+import { asset, today, contact, school } from "./data";
 import { useClub } from "./context";
 import type { Tournament } from "./types";
 import { HomeHero, ChessJourney } from "./ChessJourney";
-import { ChessKnight } from "./ChessKnight";
+import { NewsList } from "./NewsPages";
 
-export function NewsFeature({ compact = false }: { compact?: boolean }) {
-  return (
-    <article className={`news-feature ${compact ? "news-compact" : ""}`}>
-      <a
-        className="news-art"
-        data-reveal="image"
-        href={news.url}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <span className="news-art-label">
-          MEMORIAL
-          <br />
-          ALBERTO ACERO
-        </span>
-        <ChessKnight className="news-chess" />
-        <span className="news-art-bottom">
-          AJEDREZ EN PALENCIA <ArrowUpRight size={24} aria-hidden="true" />
-        </span>
-      </a>
-      <div className="news-copy" data-reveal data-reveal-delay="1">
-        <div className="meta">
-          <span className="tag">El club en la prensa</span>
-          <time dateTime={news.date}>{formatDate(news.date)}</time>
-        </div>
-        <h3>
-          <a href={news.url} target="_blank" rel="noopener noreferrer">
-            {news.title}
-          </a>
-        </h3>
-        <p>{news.description}</p>
-        <a
-          className="text-link"
-          href={news.url}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Leer en {news.source}
-          <ArrowUpRight aria-hidden="true" />
-        </a>
-      </div>
-    </article>
-  );
-}
 function TournamentList({ short = false }: { short?: boolean }) {
   const { repository } = useClub();
   const [items, setItems] = useState<Tournament[]>([]);
@@ -148,17 +106,11 @@ function TournamentList({ short = false }: { short?: boolean }) {
     </>
   );
 }
-export function Home({
-  motionEnabled,
-  onMotionToggle,
-}: {
-  motionEnabled: boolean;
-  onMotionToggle: () => void;
-}) {
+export function Home() {
   return (
     <>
-      <HomeHero motionEnabled={motionEnabled} onMotionToggle={onMotionToggle} />
-      <ChessJourney motionEnabled={motionEnabled} />
+      <HomeHero />
+      <ChessJourney />
       <section className="section container">
         <div className="section-heading" data-reveal>
           <div>
@@ -173,7 +125,7 @@ export function Home({
             Todas las noticias <ArrowRight aria-hidden="true" />
           </a>
         </div>
-        <NewsFeature compact />
+        <NewsList short />
       </section>
       <section className="section container" data-reveal>
         <div className="section-heading">
@@ -217,7 +169,7 @@ export function News() {
       <Intro eyebrow="ACTUALIDAD DEL CLUB" title="Lo que pasa entre jugadas.">
         <p>Noticias y encuentros del ajedrez palentino.</p>
       </Intro>
-      <NewsFeature />
+      <NewsList />
       <p className="source-note">
         Los enlaces de prensa se abren en la web del medio original.
       </p>
@@ -255,7 +207,7 @@ export function Classes() {
       <div className="course-grid">
         <article className="course-card" data-reveal>
           <div className="course-icon">
-            <ChessKnight />
+            <BookOpen size={52} weight="thin" aria-hidden="true" />
           </div>
           <p className="eyebrow">LOS PRIMEROS PASOS</p>
           <h2>Iniciación</h2>
@@ -268,9 +220,6 @@ export function Classes() {
             defensa, el jaque mate, la táctica elemental y las primeras ideas de
             estrategia.
           </p>
-          <a className="text-link" href="#/aula/iniciacion">
-            Materiales de iniciación <ArrowRight aria-hidden="true" />
-          </a>
         </article>
         <article
           className="course-card course-advanced"
@@ -278,7 +227,7 @@ export function Classes() {
           data-reveal-delay="1"
         >
           <div className="course-icon">
-            <ChessKnight />
+            <Strategy size={52} weight="thin" aria-hidden="true" />
           </div>
           <p className="eyebrow">UN PASO MÁS ALLÁ</p>
           <h2>Avanzado</h2>
@@ -291,9 +240,6 @@ export function Classes() {
             planificación y análisis de partidas. Prepara tu juego para la
             competición.
           </p>
-          <a className="text-link" href="#/aula/avanzado">
-            Materiales de avanzado <ArrowRight aria-hidden="true" />
-          </a>
         </article>
       </div>
       <p className="flexible-groups">

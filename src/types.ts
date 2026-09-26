@@ -28,6 +28,20 @@ export interface Tournament {
   url: string;
 }
 export type TournamentInput = Omit<Tournament, "id">;
+export interface NewsInput {
+  title: string;
+  date: string;
+  summary: string;
+  content: string;
+  imageAlt: string;
+  source: string;
+  url: string;
+}
+export interface NewsArticle extends NewsInput {
+  id: string;
+  imageUrl: string;
+  updatedAt: string;
+}
 export interface Repository {
   mode: "demo" | "remote";
   session(): Promise<Session | null>;
@@ -40,6 +54,9 @@ export interface Repository {
   tournaments(): Promise<Tournament[]>;
   saveTournament(input: TournamentInput, id?: string): Promise<void>;
   deleteTournament(id: string): Promise<void>;
+  news(): Promise<NewsArticle[]>;
+  saveNews(input: NewsInput, image?: File, id?: string): Promise<void>;
+  deleteNews(id: string): Promise<void>;
 }
 export const courseNames: Record<Course, string> = {
   iniciacion: "Iniciación",

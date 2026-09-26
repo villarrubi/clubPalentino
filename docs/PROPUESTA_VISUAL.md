@@ -1,6 +1,6 @@
-# Dirección visual implementada: una partida empieza aquí
+# Propuesta visual anterior: una partida empieza aquí
 
-Investigación y propuesta aprobadas por el usuario el 26 de septiembre de 2026. La portada abierta y el recorrido del caballo descritos aquí están implementados.
+Referencia histórica del 26 de septiembre de 2026. La revisión del 27 de septiembre sustituye el caballo fotográfico por un dibujo exclusivo de portada, el tablero del recorrido por tres bloques con entradas laterales y elimina el selector de animación. La dirección implementada actual se describe en [DESIGN.md](../DESIGN.md).
 
 ## Referencias revisadas
 

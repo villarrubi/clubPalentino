@@ -4,7 +4,6 @@ import { useEffect, type RefObject } from "react";
 export function useScrollReveal(
   root: RefObject<HTMLElement | null>,
   route: string,
-  enabled: boolean,
 ) {
   useEffect(() => {
     const container = root.current;
@@ -26,14 +25,13 @@ export function useScrollReveal(
     };
     const start = () => {
       reset();
-      if (!enabled) return;
       observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) show(entry.target as HTMLElement);
           });
         },
-        { rootMargin: "0px 0px -24px 0px", threshold: 0 },
+        { rootMargin: "0px 0px -64px 0px", threshold: 0.12 },
       );
       elements.forEach((element) => {
         // Never hide the first screen or content already reached by the reader.
@@ -59,5 +57,5 @@ export function useScrollReveal(
       reset();
       container.removeEventListener("focusin", focus);
     };
-  }, [root, route, enabled]);
+  }, [root, route]);
 }

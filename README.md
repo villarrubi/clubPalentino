@@ -11,14 +11,14 @@ Web: https://villarrubi.github.io/clubPalentino/
 - Clases en CEAS José M.ª Fernández Nieto, C/ Camino de los Hoyos, 5, 34003 Palencia. Grupos flexibles, excepto festivos y vacaciones escolares.
 - Contacto por llamada, WhatsApp con texto preparado y correo electrónico. Los mensajes se revisan y envían desde la aplicación correspondiente.
 - Materiales de iniciación y avanzado, agrupados por tema, con buscador, filtro y descarga.
-- Profesor: crear, editar, sustituir y eliminar archivos. Administrador: lo anterior y gestión de torneos.
+- Profesor: crear, editar, sustituir y eliminar archivos. Administrador: lo anterior y gestión de torneos y noticias con foto propia.
 - Tema claro y tema azul profundo, con preferencia de sistema y selector manual.
 
 ## Probar el área de alumnos y el panel
 
 En `#/acceso`, selecciona Alumnado, Profesor o Admin. La contraseña de demostración para los tres perfiles es **palentino**.
 
-Esta versión funciona en **modo de demostración local**. Los materiales y torneos se guardan en IndexedDB, solo en ese navegador y origen. Persisten al recargar, pero no se comparten entre dispositivos, usuarios o navegadores, y se pierden si se borran los datos del sitio. No hay seguimiento, tareas ni cuentas individuales de alumnos.
+Esta versión funciona en **modo de demostración local**. Los materiales, torneos, noticias y fotos se guardan en IndexedDB, solo en ese navegador y origen. Persisten al recargar, pero no se comparten entre dispositivos, usuarios o navegadores, y se pierden si se borran los datos del sitio. No hay seguimiento, tareas ni cuentas individuales de alumnos.
 
 Los permisos de la demo sirven para probar las pantallas: **no constituyen autenticación ni protección real**. La contraseña es pública y el selector de perfil permite probar cualquiera de los roles. No utilizar materiales confidenciales. Las pruebas automáticas usan contextos aislados y no añaden contenido a la web publicada.
 
@@ -62,7 +62,9 @@ La autenticación futura prevista es contraseña común para alumnos y cuentas i
 
 ## Editar información pública
 
-- `src/data.ts`: noticia, contacto y datos generales del curso.
+- `src/data.ts`: noticia de prensa inicial, contacto y datos generales del curso.
+- Panel de administrador → Noticias: crear, editar o eliminar noticias; elegir o sustituir una foto JPG, PNG o WebP de hasta 5 MB. La última noticia aparece en portada y todas tienen página de lectura.
+- `src/NewsPages.tsx` y `src/NewsForm.tsx`: noticias públicas y editor del administrador.
 - `src/PublicPages.tsx`: contenido de inicio, escuela y contacto.
 - `src/styles.css`: identidad visual, temas y diseño adaptable.
 - `public/images/`: escudo facilitado por el club e imagen original generada para la portada.

@@ -1,5 +1,7 @@
 import type {
   Repository,
+  NewsArticle,
+  NewsInput,
   Session,
   Role,
   Material,
@@ -8,6 +10,8 @@ import type {
   TournamentInput,
 } from "./types";
 import { roleNames } from "./types";
+import { news as pressNews } from "./data";
+import { readNewsImage, validateNews } from "./newsValidation";
 
 export const acceptedExtensions = [
   "pdf",
@@ -71,13 +75,51 @@ export function validateTournament(input: TournamentInput) {
 let database: Promise<IDBDatabase> | undefined;
 function db() {
   database ??= new Promise((resolve, reject) => {
-    const request = indexedDB.open("palentino-demo-v1", 1);
-    request.onupgradeneeded = () => {
-      request.result.createObjectStore("materials", { keyPath: "id" });
-      request.result.createObjectStore("files");
-      request.result.createObjectStore("tournaments", { keyPath: "id" });
+    const request = indexedDB.open("palentino-demo-v1", 2);
+    let blocked = false;
+    request.onblocked = () => {
+      blocked = true;
+      reject(
+        new Error(
+          "Cierra las otras pestañas del club y recarga para actualizar el almacenamiento local.",
+        ),
+      );
     };
-    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = () => {
+      const database = request.result;
+      if (!database.objectStoreNames.contains("materials")) {
+        database.createObjectStore("materials", { keyPath: "id" });
+        database.createObjectStore("files");
+        database.createObjectStore("tournaments", { keyPath: "id" });
+      }
+      if (!database.objectStoreNames.contains("news")) {
+        const store = database.createObjectStore("news", { keyPath: "id" });
+        store.put({
+          id: "memorial-alberto-acero",
+          title: pressNews.title,
+          date: pressNews.date,
+          summary: pressNews.description,
+          content: pressNews.description,
+          imageUrl: "",
+          imageAlt: "",
+          source: pressNews.source,
+          url: pressNews.url,
+          updatedAt: `${pressNews.date}T12:00:00.000Z`,
+        } satisfies NewsArticle);
+      }
+    };
+    request.onsuccess = () => {
+      if (blocked) {
+        request.result.close();
+        database = undefined;
+        return;
+      }
+      request.result.onversionchange = () => {
+        request.result.close();
+        database = undefined;
+      };
+      resolve(request.result);
+    };
     request.onerror = () =>
       reject(
         new Error(
@@ -199,14 +241,12 @@ class DemoRepository implements Repository {
     await this.allow(["admin"]);
     validateTournament(input);
     await write(["tournaments"], (tx) =>
-      tx
-        .objectStore("tournaments")
-        .put({
-          ...input,
-          title: input.title.trim(),
-          location: input.location.trim(),
-          id: id ?? crypto.randomUUID(),
-        }),
+      tx.objectStore("tournaments").put({
+        ...input,
+        title: input.title.trim(),
+        location: input.location.trim(),
+        id: id ?? crypto.randomUUID(),
+      }),
     );
   }
   async deleteTournament(id: string) {
@@ -214,6 +254,37 @@ class DemoRepository implements Repository {
     await write(["tournaments"], (tx) =>
       tx.objectStore("tournaments").delete(id),
     );
+  }
+  async news() {
+    return read<NewsArticle[]>("news");
+  }
+  async saveNews(input: NewsInput, image?: File, id?: string) {
+    await this.allow(["admin"]);
+    validateNews(input);
+    const previous = id
+      ? await read<NewsArticle | undefined>("news", id)
+      : undefined;
+    if (id && !previous)
+      throw new Error("La noticia ya no existe. Actualiza la lista.");
+    const imageUrl = image
+      ? await readNewsImage(image)
+      : (previous?.imageUrl ?? "");
+    if (imageUrl && !input.imageAlt.trim())
+      throw new Error("Describe brevemente la foto.");
+    const article: NewsArticle = {
+      ...input,
+      title: input.title.trim(),
+      summary: input.summary.trim(),
+      content: input.content.trim(),
+      imageUrl,
+      id: id ?? crypto.randomUUID(),
+      updatedAt: new Date().toISOString(),
+    };
+    await write(["news"], (tx) => tx.objectStore("news").put(article));
+  }
+  async deleteNews(id: string) {
+    await this.allow(["admin"]);
+    await write(["news"], (tx) => tx.objectStore("news").delete(id));
   }
 }
 
@@ -303,6 +374,27 @@ class RemoteRepository implements Repository {
     await this.request(`/tournaments/${encodeURIComponent(id)}`, {
       method: "DELETE",
     });
+  }
+  async news() {
+    return this.request<NewsArticle[]>("/news");
+  }
+  async saveNews(input: NewsInput, image?: File, id?: string) {
+    validateNews(input);
+    if (image) {
+      await readNewsImage(image);
+      if (!input.imageAlt.trim())
+        throw new Error("Describe brevemente la foto.");
+    }
+    const form = new FormData();
+    Object.entries(input).forEach(([key, value]) => form.set(key, value));
+    if (image) form.set("image", image);
+    await this.request(`/news${id ? `/${encodeURIComponent(id)}` : ""}`, {
+      method: id ? "PATCH" : "POST",
+      body: form,
+    });
+  }
+  async deleteNews(id: string) {
+    await this.request(`/news/${encodeURIComponent(id)}`, { method: "DELETE" });
   }
 }
 

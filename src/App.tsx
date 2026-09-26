@@ -11,9 +11,9 @@ import { useClub } from "./context";
 import { Home, Classes, Contact, Tournaments, News } from "./PublicPages";
 import { Campus, Login } from "./PrivatePages";
 import { Admin } from "./Admin";
+import { NewsDetail } from "./NewsPages";
 import { Intro, LinkButton, Logo, Loading } from "./components";
 import { useScrollReveal } from "./useScrollReveal";
-import { useMotionPreference } from "./useMotionPreference";
 
 const navigation = [
   ["/", "Inicio"],
@@ -53,8 +53,7 @@ export default function App() {
   });
   const { session, ready, repository } = useClub();
   const main = useRef<HTMLElement>(null);
-  const motionPreference = useMotionPreference();
-  useScrollReveal(main, route, motionPreference.enabled);
+  useScrollReveal(main, route);
   const menuButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     const navigate = () => {
@@ -102,17 +101,13 @@ export default function App() {
       </div>
     );
   else if (isPrivate && !session) content = <Login destination={route} />;
-  else if (route === "/")
-    content = (
-      <Home
-        motionEnabled={motionPreference.enabled}
-        onMotionToggle={motionPreference.toggle}
-      />
-    );
+  else if (route === "/") content = <Home />;
   else if (route === "/clases" || route === "/escuela") content = <Classes />;
   else if (route === "/contacto") content = <Contact />;
   else if (route === "/torneos") content = <Tournaments />;
   else if (route === "/noticias") content = <News />;
+  else if (route.startsWith("/noticias/"))
+    content = <NewsDetail key={route} id={route.slice("/noticias/".length)} />;
   else if (route === "/acceso") content = <Login />;
   else if (route === "/aula") content = <Campus />;
   else if (route === "/aula/iniciacion")
@@ -208,11 +203,7 @@ export default function App() {
         <div className="container footer-top">
           <div>
             <Logo footer />
-            <p>
-              Aprender, compartir y disfrutar del ajedrez.
-              <br />
-              Nos vemos en el tablero.
-            </p>
+            <p className="club-motto">Fuerza y honor</p>
           </div>
           <nav aria-label="Enlaces del club">
             <h2>El club</h2>
