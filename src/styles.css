@@ -2000,12 +2000,6 @@ html[data-motion="full"]
 }
 
 /* Public pages enter with the same paced movement as the opening scene. */
-.illustration-credit {
-  color: var(--muted);
-  font-size: 0.65rem;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
 .public-page {
   overflow: clip;
 }

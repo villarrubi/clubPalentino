@@ -34,88 +34,64 @@
   font-size: 0.93rem;
   margin: 32px 0 28px;
 }
-.hero-scene {
+.hero-cover {
   position: relative;
   min-width: 0;
   height: 600px;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #30213f;
   isolation: isolate;
 }
-.hero-scene-word {
-  position: absolute;
-  top: 8px;
-  right: 0;
-  color: var(--text);
-  opacity: 0.6;
-  font-family: Georgia, serif;
-  font-style: italic;
-  font-size: clamp(2.5rem, 4.6vw, 4.7rem);
-  letter-spacing: -0.055em;
-  white-space: nowrap;
-  padding-inline: 0.12em;
-}
-.hero-board-plane {
-  position: absolute;
-  left: 2%;
-  right: 7%;
-  bottom: 64px;
-  height: 285px;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  transform: perspective(650px) rotateX(50deg) rotateZ(-18deg);
-  transform-origin: center;
-  box-shadow:
-    0 12px 0 var(--board),
-    0 30px 50px -20px #132d4340;
-}
-.hero-board-plane span {
-  background: #e9e9df;
-}
-.hero-board-plane .dark {
-  background: #8fa2ad;
-}
-.hero-piece {
-  position: absolute;
-  width: 83%;
-  height: 440px;
-  left: 9%;
-  bottom: 105px;
-  filter: none;
-}
-.hero-piece-entrance,
-.knight-illustration {
+.hero-cover-entrance {
   width: 100%;
   height: 100%;
 }
-.knight-illustration {
-  object-fit: contain;
+.hero-cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 58%;
 }
-.hero-piece-shadow {
+.hero-cover::after {
+  content: "";
   position: absolute;
-  bottom: 137px;
-  left: 24%;
-  width: 57%;
-  height: 45px;
-  border-radius: 50%;
-  background: #1a35453d;
-  filter: blur(12px);
-  transform: rotate(-14deg);
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    #1b122d80 0%,
+    transparent 32%,
+    transparent 72%,
+    #1b122db3 100%
+  );
 }
-.hero-scene-caption {
+.hero-cover figcaption {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  left: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 0.72rem;
+  inset: 0;
+  z-index: 1;
+  color: #fffaf0;
+  pointer-events: none;
 }
-.hero-scene-caption span:first-child {
-  font-size: 0.6rem;
-  letter-spacing: 0.15em;
-  color: var(--accent);
+.hero-cover-motto {
+  position: absolute;
+  top: 34px;
+  left: 32px;
+  right: 32px;
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: clamp(2.3rem, 3.6vw, 3.5rem);
+  line-height: 1.15;
+  letter-spacing: -0.055em;
+}
+.hero-cover-note {
+  position: absolute;
+  bottom: 28px;
+  left: 32px;
+  right: 32px;
+  font-size: 0.73rem;
+  letter-spacing: 0.025em;
 }
 .hero-bottom {
   grid-column: 1 / -1;
@@ -132,10 +108,7 @@
   color: var(--text);
   font-weight: 600;
 }
-/* One paced entrance: copy, board, then the illustrated piece. */
-.home-hero {
-  overflow: clip;
-}
+/* One paced entrance: copy, cover image, then the club motto. */
 .home-hero-copy > * {
   animation: hero-copy-in 1.5s cubic-bezier(0.22, 0.65, 0.25, 1) both;
 }
@@ -151,20 +124,11 @@
 .home-hero-copy > :nth-child(5) {
   animation-delay: 0.6s;
 }
-.hero-board-plane {
-  animation: scene-in 1.8s ease 0.2s both;
-  box-shadow: 0 7px 0 var(--board);
+.hero-cover-entrance {
+  animation: cover-arrive 2s cubic-bezier(0.22, 0.65, 0.25, 1) 0.35s both;
 }
-.hero-piece-shadow {
-  opacity: 0.35;
-  animation: scene-in 1.8s ease 0.5s both;
-}
-.hero-piece-entrance {
-  animation: illustration-in 2s cubic-bezier(0.22, 0.65, 0.25, 1) 0.35s both;
-}
-.hero-scene-word,
-.hero-scene-caption {
-  animation: scene-in 1.8s ease 0.5s both;
+.hero-cover figcaption {
+  animation: scene-in 1.5s ease 0.7s both;
 }
 @keyframes hero-copy-in {
   from {
@@ -181,14 +145,14 @@
     opacity: 0;
   }
 }
-@keyframes illustration-in {
+@keyframes cover-arrive {
   from {
     opacity: 0;
-    transform: translate(70px, 25px) rotate(8deg);
+    transform: scale(1.08);
   }
   to {
     opacity: 1;
-    transform: translate(0, 0) rotate(0);
+    transform: scale(1);
   }
 }
 .chess-journey {
@@ -357,21 +321,8 @@
   .home-hero {
     gap: 0 20px;
   }
-  .hero-scene {
+  .hero-cover {
     height: 535px;
-  }
-  .hero-piece {
-    height: 380px;
-    bottom: 92px;
-  }
-  .hero-board-plane {
-    bottom: 60px;
-    height: 240px;
-    left: 7%;
-    right: 7%;
-  }
-  .hero-piece-shadow {
-    bottom: 120px;
   }
   .journey-chapter,
   .journey-heading {
@@ -409,39 +360,29 @@
   .home-hero .button-row {
     gap: 22px;
   }
-  .hero-scene {
-    height: 420px;
+  .hero-cover {
+    height: auto;
+    aspect-ratio: 4 / 5;
     max-width: 480px;
     width: 100%;
     justify-self: center;
-    margin-top: 10px;
+    margin-top: 28px;
   }
-  .hero-piece {
-    height: 300px;
-    bottom: 75px;
-    width: 88%;
-    left: 6%;
+  .hero-cover-entrance {
+    position: absolute;
+    inset: 0;
   }
-  .hero-scene-word {
-    font-size: clamp(2.1rem, 10.1vw, 3.9rem);
-    top: 3px;
-    right: 6px;
+  .hero-cover-motto {
+    top: 24px;
+    left: 22px;
+    right: 22px;
+    font-size: clamp(2rem, 8.5vw, 3rem);
   }
-  .hero-board-plane {
-    left: 9%;
-    right: 9%;
-    height: 200px;
-    bottom: 43px;
-  }
-  .hero-piece-shadow {
-    bottom: 103px;
-  }
-  .hero-scene-caption {
-    bottom: 4px;
-    font-size: 0.67rem;
-  }
-  .hero-scene-caption span:first-child {
-    font-size: 0.54rem;
+  .hero-cover-note {
+    bottom: 22px;
+    left: 22px;
+    right: 22px;
+    font-size: 0.64rem;
   }
   .hero-bottom {
     margin-top: 26px;
@@ -522,7 +463,7 @@
 }
 @media print {
   .home-hero *,
-  .hero-piece-entrance {
+  .hero-cover-entrance {
     animation: none !important;
   }
 }

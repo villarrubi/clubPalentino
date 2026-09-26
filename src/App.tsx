@@ -204,14 +204,6 @@ export default function App() {
           <div>
             <Logo footer />
             <p className="club-motto">Fuerza y honor</p>
-            <a
-              className="illustration-credit"
-              href={`${import.meta.env.BASE_URL}images/caballo-creditos.txt`}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Créditos de la ilustración
-            </a>
           </div>
           <nav aria-label="Enlaces del club">
             <h2>El club</h2>

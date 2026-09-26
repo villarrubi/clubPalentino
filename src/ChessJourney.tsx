@@ -6,7 +6,7 @@ import {
   UsersThree,
 } from "@phosphor-icons/react";
 import { LinkButton } from "./components";
-import { ChessKnight } from "./ChessKnight";
+import { asset } from "./data";
 import "./journey.css";
 import {
   LazyMotion,
@@ -52,10 +52,7 @@ export function HomeHero() {
     target: hero,
     offset: ["start start", "end start"],
   });
-  const pieceX = useTransform(scrollYProgress, [0, 1], [0, -65]);
-  const pieceY = useTransform(scrollYProgress, [0, 1], [0, -75]);
-  const pieceRotate = useTransform(scrollYProgress, [0, 1], [0, -9]);
-  const boardRotate = useTransform(scrollYProgress, [0, 1], [-18, -4]);
+  const imageY = useTransform(scrollYProgress, [0, 1], [0, -16]);
   return (
     <LazyMotion features={domAnimation} strict>
       <section
@@ -83,41 +80,27 @@ export function HomeHero() {
             </a>
           </div>
         </div>
-        <div className="hero-scene" aria-hidden="true">
-          <span className="hero-scene-word">Fuerza y honor</span>
-          <m.div
-            className="hero-board-plane"
-            style={{
-              rotateX: 50,
-              rotateZ: boardRotate,
-              transformPerspective: 650,
-            }}
-          >
-            {Array.from({ length: 25 }, (_, i) => (
-              <span
-                key={i}
-                className={(Math.floor(i / 5) + (i % 5)) % 2 ? "dark" : ""}
-              />
-            ))}
-          </m.div>
-          <div className="hero-piece-shadow" />
-          <m.div
-            className="hero-piece"
-            style={{
-              x: pieceX,
-              y: pieceY,
-              rotate: pieceRotate,
-            }}
-          >
-            <div className="hero-piece-entrance">
-              <ChessKnight className="knight-illustration" />
-            </div>
-          </m.div>
-          <div className="hero-scene-caption">
-            <span>01 / EL PRIMER MOVIMIENTO</span>
-            <span>Siempre hay una nueva posibilidad.</span>
+        <figure className="hero-cover">
+          <div className="hero-cover-entrance">
+            <m.img
+              className="hero-cover-image"
+              src={asset("ajedrez-hero.webp")}
+              srcSet={`${asset("ajedrez-hero-mobile.webp")} 800w, ${asset("ajedrez-hero.webp")} 1120w`}
+              sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1352px) calc((100vw - 152px) / 2), 585px"
+              width="1120"
+              height="1400"
+              alt="Un caballo, una torre y un peón sobre un tablero de ajedrez."
+              fetchPriority="high"
+              style={{ y: imageY, scale: 1.06 }}
+            />
           </div>
-        </div>
+          <figcaption>
+            <span className="hero-cover-motto">Fuerza y honor</span>
+            <span className="hero-cover-note">
+              Un tablero. Infinitas posibilidades.
+            </span>
+          </figcaption>
+        </figure>
         <div className="hero-bottom">
           <span>Club Palentino de Ajedrez</span>
           <span>Aprender. Jugar. Volver a encontrarnos.</span>

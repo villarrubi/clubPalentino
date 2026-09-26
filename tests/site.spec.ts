@@ -82,7 +82,7 @@ test("páginas públicas, contenido del curso, contacto y diseño adaptable", as
   ).toHaveAttribute("href", /^mailto:clubpalentinoajedrez@gmail.com\?subject=/);
   await page.goto("/");
   await revealPage(page);
-  await expect(page.locator(".hero-piece-entrance")).toHaveCSS("opacity", "1");
+  await expect(page.locator(".hero-cover-entrance")).toHaveCSS("opacity", "1");
   await page.screenshot({
     path: testInfo.outputPath("inicio.png"),
     fullPage: true,
@@ -106,20 +106,24 @@ test("entradas laterales de los tres capítulos y enlaces accesibles", async ({
   page,
 }, testInfo) => {
   await page.goto("/");
-  await expect(page.locator(".knight-illustration")).toHaveCount(1);
-  await expect(page.locator(".knight-illustration")).toHaveAttribute(
+  await expect(page.locator(".hero-cover-image")).toHaveCount(1);
+  await expect(page.locator(".hero-cover-image")).toHaveAttribute(
     "src",
-    /caballo-clasico\.svg$/,
+    /ajedrez-hero\.webp$/,
   );
   await expect
     .poll(() =>
       page
-        .locator(".knight-illustration")
+        .locator(".hero-cover-image")
         .evaluate((image: HTMLImageElement) => image.naturalWidth),
     )
     .toBeGreaterThan(0);
-  await expect(page.locator(".hero-scene-word")).toHaveText("Fuerza y honor");
-  await expect(page.locator('img[src*="caballo-staunton"]')).toHaveCount(0);
+  await expect(page.locator(".hero-cover-motto")).toHaveText("Fuerza y honor");
+  await expect(
+    page.locator(
+      'img[src*="caballo-staunton"], img[src*="caballo-clasico"], .hero-board-plane',
+    ),
+  ).toHaveCount(0);
   const firstArt = page.locator('[data-chapter="0"] .chapter-art');
   const firstCopy = page.locator('[data-chapter="0"] .chapter-copy');
   await expect(firstArt).toHaveClass(/reveal-pending/);
@@ -154,7 +158,7 @@ test("entradas laterales de los tres capítulos y enlaces accesibles", async ({
   await expect(cta).toHaveCSS("opacity", "1");
   await page.locator('[data-chapter="0"] .journey-link').click();
   await expect(page.locator("main h1")).toHaveText("Escuela Club Palentino");
-  await expect(page.locator(".knight-illustration")).toHaveCount(0);
+  await expect(page.locator(".hero-cover-image")).toHaveCount(0);
 });
 
 test("las cuatro páginas públicas animan su entrada al navegar", async ({
@@ -255,11 +259,11 @@ test("apertura pausada y una sola animación sin selector ni preferencias guarda
   await expect(page.getByRole("button", { name: /animaciones/ })).toHaveCount(
     0,
   );
-  const entrance = page.locator(".hero-piece-entrance");
+  const entrance = page.locator(".hero-cover-entrance");
   await expect(entrance).toHaveCSS("animation-duration", "2s");
   await expect(entrance).toHaveCSS("animation-delay", "0.35s");
   await expect(entrance).toHaveCSS("opacity", "1");
-  const piece = page.locator(".hero-piece");
+  const piece = page.locator(".hero-cover-image");
   const before = await piece.evaluate((el) => getComputedStyle(el).transform);
   await page.evaluate(() => scrollTo({ top: 350, behavior: "instant" }));
   await expect
