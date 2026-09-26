@@ -306,11 +306,10 @@ test("alumnos: contraseña, dos niveles, persistencia y permisos", async ({
 }) => {
   await mockApi(page);
   await page.goto("/#/aula/avanzado");
-  await page.getByLabel("Correo electrónico").fill("alumno@example.test");
-  await page.getByLabel("Contraseña", { exact: true }).fill("incorrecta");
+  await page.getByLabel("Contraseña de las clases", { exact: true }).fill("incorrecta");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await expect(page.getByRole("alert")).toContainText("credenciales no son correctas");
-  await page.getByLabel("Contraseña", { exact: true }).fill("test-password");
+  await page.getByLabel("Contraseña de las clases", { exact: true }).fill("test-password");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Clases de avanzado." }),

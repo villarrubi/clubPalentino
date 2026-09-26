@@ -168,46 +168,29 @@ class DemoRepository implements Repository {
   readonly mode = "demo" as const;
   async session(): Promise<Session | null> {
     sessionStorage.removeItem("palentino-session");
-    return sessionStorage.getItem("palentino-student-preview") === "1"
-      ? { role: "student", name: "Vista previa" }
-      : null;
+    sessionStorage.removeItem("palentino-student-preview");
+    return null;
   }
   async login(_credentials: Credentials): Promise<Session> {
-    throw new Error("El acceso con cuenta aún no está disponible. Contacta con el club.");
-  }
-  async previewStudent(): Promise<Session> {
-    sessionStorage.setItem("palentino-student-preview", "1");
-    return { role: "student", name: "Vista previa" };
+    throw new Error("El acceso aún no está configurado. Contacta con el club.");
   }
   async logout() {
     sessionStorage.removeItem("palentino-session");
     sessionStorage.removeItem("palentino-student-preview");
   }
-  private async requirePreview() {
-    if (!(await this.session()))
-      throw new Error("Abre la vista previa para consultar los materiales.");
+  private denyAccess(): never {
+    throw new Error("No tienes permiso para acceder al contenido. El servicio de acceso aún no está configurado.");
   }
-  private denyWrite(): never {
-    throw new Error("La vista previa no tiene permiso para modificar contenido. Accede con una cuenta cuando el servicio esté disponible.");
-  }
-  async materials() {
-    await this.requirePreview();
-    return (await read<Material[]>("materials")).map(normalizeMaterial);
-  }
-  async saveMaterial(_input: MaterialInput, _file?: File, _id?: string) { this.denyWrite(); }
-  async deleteMaterial(_id: string) { this.denyWrite(); }
-  async download(id: string) {
-    await this.requirePreview();
-    const blob = await read<Blob | undefined>("files", id);
-    if (!blob) throw new Error("No se encuentra el archivo. Pide al profesor que vuelva a subirlo.");
-    return blob;
-  }
+  async materials(): Promise<Material[]> { return this.denyAccess(); }
+  async saveMaterial(_input: MaterialInput, _file?: File, _id?: string) { this.denyAccess(); }
+  async deleteMaterial(_id: string) { this.denyAccess(); }
+  async download(_id: string): Promise<Blob> { return this.denyAccess(); }
   async tournaments() { return read<Tournament[]>("tournaments"); }
-  async saveTournament(_input: TournamentInput, _id?: string) { this.denyWrite(); }
-  async deleteTournament(_id: string) { this.denyWrite(); }
+  async saveTournament(_input: TournamentInput, _id?: string) { this.denyAccess(); }
+  async deleteTournament(_id: string) { this.denyAccess(); }
   async news() { return read<NewsArticle[]>("news"); }
-  async saveNews(_input: NewsInput, _image?: File, _id?: string) { this.denyWrite(); }
-  async deleteNews(_id: string) { this.denyWrite(); }
+  async saveNews(_input: NewsInput, _image?: File, _id?: string) { this.denyAccess(); }
+  async deleteNews(_id: string) { this.denyAccess(); }
 }
 
 class RemoteRepository implements Repository {
@@ -237,10 +220,10 @@ class RemoteRepository implements Repository {
   }
   async login({ email, password }: Credentials) {
     const session = validatedSession(
-      await this.request<Session>("/session", {
+      await this.request<Session>(email === undefined ? "/session/student" : "/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify(email === undefined ? { password } : { email: email.trim(), password }),
       }),
     );
     if (!session) throw new Error("No se ha podido iniciar sesión.");

@@ -36,26 +36,29 @@ import {
 import { fileSize } from "./data";
 
 export function Login({ destination = "/aula" }: { destination?: string }) {
-  const { login, previewStudent, repository, session } = useClub();
+  const { login, repository, session, logout } = useClub();
+  const staff = destination === "/panel";
+  const available = repository.mode === "remote";
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  useEffect(() => {
+    setPassword("");
+    setEmail("");
+    setShow(false);
+    setError("");
+  }, [staff]);
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError("");
     setBusy(true);
     try {
-      const authenticated = repository.mode === "demo"
-        ? await previewStudent()
-        : await login({ email, password });
-      location.hash =
-        authenticated.role === "student"
-          ? destination === "/panel"
-            ? "/aula"
-            : destination
-          : "/panel";
+      const authenticated = await login(staff ? { email, password } : { password });
+      location.hash = authenticated.role === "student"
+        ? staff ? "/aula" : destination
+        : "/panel";
     } catch (error) {
       setError((error as Error).message);
     } finally {
@@ -65,93 +68,66 @@ export function Login({ destination = "/aula" }: { destination?: string }) {
   if (session)
     return (
       <div className="container inner-page">
-        <Intro
-          eyebrow="TU ESPACIO EN EL CLUB"
-          title="Ya has iniciado sesión."
-        />
+        <Intro eyebrow="TU ESPACIO EN EL CLUB" title="Ya has iniciado sesión." />
         <LinkButton href={session.role === "student" ? "#/aula" : "#/panel"}>Ir a mi espacio</LinkButton>
+        {staff && session.role === "student" && <>
+          <p>Para gestionar los materiales, cierra la sesión de alumno y accede con tu cuenta del club.</p>
+          <button className="button button-secondary" onClick={async () => {
+            try { await logout(); location.hash = "/acceso-equipo"; }
+            catch (error) { setError((error as Error).message); }
+          }}>Acceder con otra cuenta</button>
+          <ErrorMessage>{error}</ErrorMessage>
+        </>}
       </div>
     );
   return (
     <div className="container inner-page">
       <div className="login-layout">
         <div className="login-intro">
-          <p className="eyebrow">ÁREA DE ALUMNOS</p>
-          <h1>
-            Tu siguiente
-            <br />
-            jugada empieza
-            <br />
-            <span>aprendiendo.</span>
-          </h1>
-          <p>
-            Todos los materiales de tus clases, en un mismo lugar. Accede a
-            iniciación y avanzado y repasa a tu ritmo.
-          </p>
+          <p className="eyebrow">{staff ? "ACCESO DEL EQUIPO" : "ÁREA DE ALUMNOS"}</p>
+          <h1>{staff ? <>Tu espacio<br />para <span>enseñar.</span></> : <>
+            Tu siguiente<br />jugada empieza<br /><span>aprendiendo.</span>
+          </>}</h1>
+          <p>{staff
+            ? "Accede con tu cuenta del club para subir y organizar el temario, los ejercicios y los recursos."
+            : "Todos los materiales de tus clases, en un mismo lugar. Accede con la contraseña que te ha facilitado el club."}</p>
           <div className="login-benefit">
             <BookOpen size={24} aria-hidden="true" />
-            <span>
-              Documentos y presentaciones
-              <br />
-              <strong>Temario, ejercicios y recursos</strong>
-            </span>
+            <span>Documentos y presentaciones<br /><strong>Temario, ejercicios y recursos</strong></span>
           </div>
         </div>
         <section className="login-card">
-          <span className="login-lock">
-            <LockKey size={26} aria-hidden="true" />
-          </span>
-          <h2>Bienvenido al club</h2>
-          <p>Entra a tu espacio de clases.</p>
+          <span className="login-lock"><LockKey size={26} aria-hidden="true" /></span>
+          <h2>{staff ? "Profesores y administración" : "Bienvenido al aula"}</h2>
+          <p>{staff ? "Introduce el correo y la contraseña de tu cuenta." : "Introduce la contraseña de las clases."}</p>
           <form onSubmit={submit}>
-            {repository.mode === "remote" && <>
-              <label>
-                Correo electrónico
-                <input required type="email" name="email" autoComplete="username"
-                  value={email} onChange={(event) => setEmail(event.target.value)} />
-              </label>
-            <label htmlFor="access-password">
-              Contraseña
-            </label>
+            {staff && <label>
+              Correo electrónico
+              <input required type="email" name="email" autoComplete="username"
+                value={email} onChange={(event) => setEmail(event.target.value)} disabled={!available} />
+            </label>}
+            <label htmlFor="access-password">{staff ? "Contraseña" : "Contraseña de las clases"}</label>
             <div className="password-field">
-              <input
-                id="access-password"
-                name="password"
-                autoComplete="current-password"
-                type={show ? "text" : "password"}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-                aria-describedby="password-help"
-              />
-              <button
-                type="button"
-                className="icon-button"
-                onClick={() => setShow(!show)}
-                aria-label={show ? "Ocultar contraseña" : "Mostrar contraseña"}
-              >
+              <input id="access-password" name="password" autoComplete="current-password"
+                type={show ? "text" : "password"} value={password} disabled={!available}
+                onChange={(event) => setPassword(event.target.value)} required aria-describedby="password-help" />
+              <button type="button" className="icon-button" onClick={() => setShow(!show)}
+                aria-label={show ? "Ocultar contraseña" : "Mostrar contraseña"} disabled={!available}>
                 {show ? <EyeSlash /> : <Eye />}
               </button>
             </div>
-            <p className="field-help" id="password-help">
-              Utiliza las credenciales que te ha facilitado el club.
-            </p>
-            </>}
-            {repository.mode === "demo" && <p className="field-help">
-              El acceso con cuenta aún no está disponible. Puedes explorar el aula en una vista previa de solo lectura.
-            </p>}
+            <p className="field-help" id="password-help">{available
+              ? staff ? "Utiliza tu cuenta personal del club." : "Si no tienes la contraseña, pídela a tu profesor."
+              : "Estamos preparando el acceso privado. Todavía no es posible entrar; contacta con el club para más información."}</p>
             <ErrorMessage>{error}</ErrorMessage>
-            <button className="button full-width" disabled={busy} type="submit">
-              {busy ? "Accediendo…" : repository.mode === "demo" ? "Explorar el aula" : "Entrar"}
-              <ArrowRight aria-hidden="true" />
+            <button className="button full-width" disabled={busy || !available} type="submit">
+              {busy ? "Accediendo…" : "Entrar"}<ArrowRight aria-hidden="true" />
             </button>
           </form>
-          <a className="login-help" href="#/contacto">
-            ¿Necesitas ayuda? Contacta con el club
-          </a>
+          <a className="login-help" href="#/contacto">¿Necesitas ayuda? Contacta con el club</a>
+          {staff && <a className="login-help" href="#/acceso">Volver al acceso de alumnos</a>}
         </section>
       </div>
-      <DemoNotice />
     </div>
   );
 }

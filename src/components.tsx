@@ -74,9 +74,8 @@ export function DemoNotice() {
     <aside className="demo-notice">
       <Info size={22} aria-hidden="true" />
       <p>
-        <strong>Vista previa de solo lectura.</strong> Puedes consultar los
-        materiales de prueba guardados en este navegador. El acceso con cuenta
-        y la gestión de contenidos aún no están disponibles.
+        <strong>Acceso privado pendiente de activar.</strong> El aula y la gestión
+        de contenidos permanecerán cerradas hasta configurar el servicio de acceso.
       </p>
     </aside>
   );

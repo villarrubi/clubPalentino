@@ -2,26 +2,41 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { login, mockApi } from "./mockApi";
 
-test("vista previa: ignora perfiles manipulados y bloquea toda escritura", async ({ page }) => {
+test("acceso discreto del equipo y formularios separados accesibles", async ({ page }) => {
+  await mockApi(page);
+  await page.goto("/#/acceso");
+  await expect(page.locator('a[href="#/acceso-equipo"], a[href="#/panel"]')).toHaveCount(0);
+  await expect(page.getByLabel("Correo electrónico")).toHaveCount(0);
+  await page.getByLabel("Contraseña de las clases").fill("student-password");
+  expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze()).violations).toEqual([]);
+  await page.goto("/#/acceso-equipo");
+  await expect(page.getByLabel("Correo electrónico")).toBeVisible();
+  await expect(page.getByLabel("Contraseña", { exact: true })).toHaveValue("");
+  await expect(page.getByRole("button", { name: /^(Admin|Profesor|Alumnado)$/ })).toHaveCount(0);
+  expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze()).violations).toEqual([]);
+});
+
+test("sin servicio: no permite entrar ni recuperar las antiguas sesiones de demo", async ({ page }) => {
   await page.addInitScript(() => {
     sessionStorage.setItem("palentino-session", JSON.stringify({ role: "admin", name: "Admin" }));
+    sessionStorage.setItem("palentino-student-preview", "1");
   });
   await page.goto("/#/panel");
   await expect(page.getByRole("button", { name: /^(Admin|Profesor|Alumnado)$/ })).toHaveCount(0);
-  await expect(page.getByLabel("Contraseña", { exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: "Explorar el aula" }).click();
-  await expect(page).toHaveURL(/#\/aula$/);
-  await page.goto("/#/panel");
-  await expect(page.getByRole("heading", { name: "Este espacio es para el profesorado." })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Entrar", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Explorar el aula" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Subir material" })).toHaveCount(0);
+  await page.goto("/#/aula/iniciacion");
+  await expect(page.getByLabel("Contraseña de las clases")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Entrar", exact: true })).toBeDisabled();
   const results = await page.evaluate(async () => {
     const path = "/src/repository.ts";
     const { createRepository } = await import(path);
     const repo = await createRepository();
     const results: string[] = [];
-    // A local caller cannot reinstate the old privileged demo via storage or API calls.
     sessionStorage.setItem("palentino-session", JSON.stringify({ role: "admin" }));
     for (const action of [
+      () => repo.materials(), () => repo.download("x"),
       () => repo.saveMaterial({}), () => repo.deleteMaterial("x"),
       () => repo.saveTournament({}), () => repo.deleteTournament("x"),
       () => repo.saveNews({}), () => repo.deleteNews("x"),
@@ -31,24 +46,23 @@ test("vista previa: ignora perfiles manipulados y bloquea toda escritura", async
     }
     return { results, session: await repo.session() };
   });
-  expect(results.session.role).toBe("student");
-  expect(results.results).toHaveLength(6);
-  for (const result of results.results) expect(result).toContain("no tiene permiso");
-  await page.reload();
-  await expect(page.getByRole("heading", { name: "Este espacio es para el profesorado." })).toBeVisible();
+  expect(results.session).toBeNull();
+  expect(results.results).toHaveLength(8);
+  for (const result of results.results) expect(result).toContain("No tienes permiso");
 });
 
-test("acceso único: envía solo credenciales y usa el rol del servicio", async ({ page }) => {
+test("alumnos: contraseña obligatoria sin correo ni selección de permisos", async ({ page }) => {
   await mockApi(page);
   await page.addInitScript(() => sessionStorage.setItem("palentino-session", JSON.stringify({ role: "admin" })));
-  await page.goto("/#/panel");
+  await page.goto("/#/aula");
   await expect(page.getByRole("button", { name: /^(Admin|Profesor|Alumnado)$/ })).toHaveCount(0);
-  await page.getByLabel("Correo electrónico").fill("alumno@example.test");
-  await page.getByLabel("Contraseña", { exact: true }).fill("test-password");
-  const request = page.waitForRequest((r) => r.url().endsWith("/session") && r.method() === "POST");
+  await expect(page.getByLabel("Correo electrónico")).toHaveCount(0);
+  await expect(page.getByLabel("Contraseña de las clases")).toHaveAttribute("required", "");
+  await page.getByLabel("Contraseña de las clases").fill("test-password");
+  const request = page.waitForRequest((r) => r.url().endsWith("/session/student") && r.method() === "POST");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
-  expect((await request).postDataJSON()).toEqual({ email: "alumno@example.test", password: "test-password" });
-  await expect(page).toHaveURL(/#\/aula$/);
+  expect((await request).postDataJSON()).toEqual({ password: "test-password" });
+  await expect(page.getByRole("heading", { name: "Siempre una jugada por descubrir." })).toBeVisible();
   await page.goto("/#/panel");
   await expect(page.getByRole("heading", { name: "Este espacio es para el profesorado." })).toBeVisible();
   const denial = await page.evaluate(async () => {
@@ -58,6 +72,15 @@ test("acceso único: envía solo credenciales y usa el rol del servicio", async 
     catch (error) { return (error as Error).message; }
   });
   expect(denial).toContain("no tiene permiso");
+  await page.getByRole("link", { name: "Acceder con una cuenta de gestión" }).click();
+  await page.getByRole("button", { name: "Acceder con otra cuenta" }).click();
+  await expect(page.getByLabel("Correo electrónico")).toBeVisible();
+  await page.getByLabel("Correo electrónico").fill("profesor@example.test");
+  await page.getByLabel("Contraseña", { exact: true }).fill("test-password");
+  const staffRequest = page.waitForRequest((r) => r.url().endsWith("/session") && r.method() === "POST");
+  await page.getByRole("button", { name: "Entrar", exact: true }).click();
+  expect((await staffRequest).postDataJSON()).toEqual({ email: "profesor@example.test", password: "test-password" });
+  await expect(page.getByRole("button", { name: "Subir material", exact: true })).toBeVisible();
 });
 
 test("temario, recursos y ejercicios por bloques: búsqueda, niveles y accesibilidad", async ({ page }, testInfo) => {

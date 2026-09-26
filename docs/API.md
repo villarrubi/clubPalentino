@@ -15,12 +15,15 @@ Para cookies entre GitHub Pages y otro dominio, usar `HttpOnly; Secure; SameSite
 | Método y ruta | Entrada | Respuesta |
 | --- | --- | --- |
 | GET /session | Cookie | `null` si no hay sesión; `{ "role": "student", "name": "Alumno" }` si la hay |
-| POST /session | JSON `{email, password}` | Sesión y cookie; error 401 para credenciales incorrectas |
+| POST /session | JSON `{email, password}` del equipo | Sesión de profesor o administrador y cookie; error 401 para credenciales incorrectas |
+| POST /session/student | JSON `{password}` de las clases | Solo sesión `student` y cookie; error 401 para contraseña incorrecta |
 | DELETE /session | Cookie | 204; revocar sesión y eliminar cookie |
 
-Roles de respuesta: `student`, `teacher`, `admin`. El formulario es único para todas las cuentas. **No aceptar un rol del cliente**: autenticar correo y contraseña y obtener el rol de la cuenta persistida en el servidor. Almacenar contraseñas con hash fuerte y sal; añadir caducidad, revocación y limitación de intentos. Nunca utilizar las antiguas credenciales públicas de demo. No hay contraseñas ni cuentas incluidas en la aplicación.
+Roles de respuesta: `student`, `teacher`, `admin`. **No aceptar un rol del cliente**. El acceso de alumnos (`#/acceso` y rutas del aula) pide solo la contraseña de las clases: `/session/student` debe validarla y emitir exclusivamente una sesión de alumno, incluso ante campos manipulados. El formulario separado `#/acceso-equipo` pide correo y contraseña: `/session` autentica la cuenta personal y obtiene sus permisos de los datos guardados en el servidor, sin distinguir profesor y administrador en la pantalla de acceso.
 
-El cliente utiliza únicamente la sesión devuelta por el servicio; no restaura roles desde sessionStorage. Sin servicio, solo existe una vista previa de alumno sin escritura. La autorización efectiva de cada operación sigue siendo responsabilidad del servidor. Este cambio de contrato de acceso debe implementarse antes de conectar una API anterior.
+Almacenar las contraseñas con hash fuerte y sal; añadir caducidad, revocación y limitación de intentos a ambos accesos. Nunca utilizar las antiguas credenciales públicas de demo. No hay contraseñas ni cuentas incluidas en la aplicación.
+
+El cliente utiliza únicamente la sesión devuelta por el servicio; no restaura roles ni sesiones de vista previa desde sessionStorage. Sin servicio, el aula y la gestión están bloqueadas: no hay entrada de demostración ni lectura/descarga de materiales. La autorización efectiva de cada operación sigue siendo responsabilidad del servidor. Ocultar el enlace de gestión no sustituye estas comprobaciones. Este contrato debe implementarse antes de activar el servicio; el servidor y su despliegue quedan pendientes hasta elegir alojamiento.
 
 Todos los alumnos pueden leer los materiales de ambos niveles. No hay matrícula por curso, tareas, notas ni seguimiento.
 
@@ -94,7 +97,7 @@ La lectura añade `id`, `imageUrl` (cadena vacía si no hay foto) y `updatedAt` 
 
 `image` admite JPEG, PNG y WebP de hasta 5 MB. Comprobar formato, contenido decodificable, tamaño y permisos en el servidor. Al editar sin imagen, conservar la foto anterior; al sustituirla, coordinar el reemplazo del archivo y los metadatos. Las fotos de noticias son públicas, a diferencia de los materiales. El servidor debe devolver URLs válidas para esas fotos y denegar cualquier escritura a visitantes, alumnos y profesores.
 
-La vista previa de solo lectura conserva IndexedDB versión 2: añade noticias sin borrar materiales, archivos o torneos existentes. La noticia de prensa original se importa una vez al crear el almacén; su borrado no la vuelve a importar. Las fotos de demostraciones anteriores se conservan como data URLs locales. No se permiten nuevas escrituras en modo demo. El modo remoto necesita implementar estos endpoints antes de activarlo; la migración local no carga noticias en un servidor.
+El repositorio local de la web pública conserva IndexedDB versión 2: añade noticias sin borrar materiales, archivos o torneos existentes. La noticia de prensa original se importa una vez al crear el almacén; su borrado no la vuelve a importar. Las fotos de demostraciones anteriores se conservan como data URLs locales. No se permite leer ni descargar materiales, ni realizar escrituras desde la aplicación sin servicio de autenticación. Los datos antiguos permanecen en el dispositivo sin migrarlos ni exponerlos en el aula. El modo remoto necesita implementar estos endpoints antes de activarlo; la migración local no carga noticias en un servidor.
 
 ## Errores y puesta en marcha
 

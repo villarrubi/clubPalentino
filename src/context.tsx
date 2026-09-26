@@ -12,7 +12,6 @@ type ClubContext = {
   session: Session | null;
   ready: boolean;
   login: (credentials: Credentials) => Promise<Session>;
-  previewStudent: () => Promise<Session>;
   logout: () => Promise<void>;
   notify: (message: string) => void;
 };
@@ -58,12 +57,6 @@ export function Provider({
         notify: setMessage,
         login: async (credentials) => {
           const value = await repository.login(credentials);
-          setSession(value);
-          return value;
-        },
-        previewStudent: async () => {
-          if (!repository.previewStudent) throw new Error("La vista previa no está disponible.");
-          const value = await repository.previewStudent();
           setSession(value);
           return value;
         },

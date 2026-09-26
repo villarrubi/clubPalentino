@@ -29,7 +29,8 @@ const titleMap: Record<string, string> = {
   "/torneos": "Próximos torneos",
   "/noticias": "Noticias",
   "/contacto": "Contacto",
-  "/acceso": "Acceso",
+  "/acceso": "Acceso de alumnos",
+  "/acceso-equipo": "Acceso del equipo",
   "/aula": "Área de alumnos",
   "/aula/iniciacion": "Clases de iniciación",
   "/aula/avanzado": "Clases de avanzado",
@@ -109,6 +110,7 @@ export default function App() {
   else if (route.startsWith("/noticias/"))
     content = <NewsDetail key={route} id={route.slice("/noticias/".length)} />;
   else if (route === "/acceso") content = <Login />;
+  else if (route === "/acceso-equipo") content = <Login destination="/panel" />;
   else if (route === "/aula") content = <Campus />;
   else if (route === "/aula/iniciacion")
     content = <Campus course="iniciacion" />;
@@ -127,6 +129,7 @@ export default function App() {
           title="Este espacio es para el profesorado."
         />
         <LinkButton href="#/aula">Volver a mis clases</LinkButton>
+        <p><a className="text-link" href="#/acceso-equipo">Acceder con una cuenta de gestión</a></p>
       </div>
     );
   else
@@ -221,7 +224,6 @@ export default function App() {
             <a href="#/aula">
               Área de alumnos <ArrowUpRight aria-hidden="true" />
             </a>
-            <a href="#/panel">Acceso de profesores</a>
             <span>Palencia, Castilla y León</span>
           </nav>
         </div>

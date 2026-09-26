@@ -20,8 +20,8 @@ export async function mockApi(page: Page, initialMaterials: Partial<Material>[] 
       if (method === "DELETE") { session = null; return route.fulfill({ status: 204 }); }
       if (method === "POST") {
         const input = request.postDataJSON();
-        const roles = { "alumno@example.test": "student", "profesor@example.test": "teacher", "admin@example.test": "admin" } as const;
-        const role = roles[input.email as keyof typeof roles];
+        const roles = { "profesor@example.test": "teacher", "admin@example.test": "admin" } as const;
+        const role = id === "student" ? "student" : roles[input.email as keyof typeof roles];
         if (!role || input.password !== "test-password" || "role" in input) return route.fulfill({ status: 401 });
         session = { role, name: "Cuenta de prueba" };
       }
@@ -75,10 +75,10 @@ export async function mockApi(page: Page, initialMaterials: Partial<Material>[] 
 
 export async function login(page: Page, role: "Alumnado" | "Profesor" | "Admin") {
   await mockApi(page);
-  await page.goto("/#/acceso");
+  await page.goto(role === "Alumnado" ? "/#/acceso" : "/#/acceso-equipo");
   const email = { Alumnado: "alumno", Profesor: "profesor", Admin: "admin" }[role];
-  await page.getByLabel("Correo electrónico").fill(`${email}@example.test`);
-  await page.getByLabel("Contraseña", { exact: true }).fill("test-password");
+  if (role !== "Alumnado") await page.getByLabel("Correo electrónico").fill(`${email}@example.test`);
+  await page.getByLabel(role === "Alumnado" ? "Contraseña de las clases" : "Contraseña", { exact: true }).fill("test-password");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await expect(page).toHaveURL(role === "Alumnado" ? /#\/aula$/ : /#\/panel$/);
 }

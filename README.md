@@ -16,9 +16,13 @@ Web: https://villarrubi.github.io/clubPalentino/
 
 ## Acceso y área de alumnos
 
-El acceso no permite elegir un rol. Con un servicio configurado, se introduce correo y contraseña; el servidor autentica la cuenta y devuelve sus permisos. Alumnos acceden al aula; profesores y administradores, al panel. El cliente no envía un rol en la petición de acceso ni acepta perfiles guardados en el navegador.
+El aula es privada: los alumnos entrarán con la **contraseña de las clases**, sin correo ni elección de rol. El servicio deberá comprobar esa contraseña y emitir una sesión exclusivamente de alumno.
 
-Sin servicio, la web ofrece únicamente una **vista previa de alumno, de solo lectura**. No hay contraseñas públicas ni acceso de gestión en la demo. Las sesiones antiguas se descartan y todas las operaciones de escritura local están bloqueadas, incluso llamando directamente al repositorio. Esto no convierte IndexedDB en almacenamiento privado: conserva solo los materiales de prueba de ese navegador; no se comparten entre dispositivos y se pierden al borrar los datos del sitio.
+Profesores y administradores comparten un formulario independiente en `#/acceso-equipo` con **correo y contraseña personal**. No hay enlaces a ese formulario en el menú, el pie de página ni el acceso de alumnos. La ruta directa `#/panel` también solicita esas credenciales si no hay sesión. El servidor asignará los permisos de la cuenta, sin recibir un rol elegido por el visitante. La dirección discreta no es un mecanismo de autorización.
+
+**Estado actual en GitHub Pages:** el servicio de autenticación y almacenamiento todavía no existe ni está conectado. Los formularios están preparados, pero el acceso al aula y a la gestión permanece desactivado; no hay credenciales válidas ni entrada de vista previa. La web pública sigue funcionando. No subir materiales privados al repositorio ni a `public/`.
+
+Las sesiones antiguas de demostración se descartan. El repositorio local deniega leer o descargar materiales y cualquier escritura, incluso al invocarlo directamente. Conserva los antiguos datos de prueba de IndexedDB en ese navegador sin mostrarlos en el aula; IndexedDB no es almacenamiento privado ni compartido. Al elegir alojamiento habrá que implementar el servicio y migrar los materiales que se quieran conservar.
 
 Cada nivel tiene tres zonas: **Temario**, **Ejercicios** y **Recursos**. El temario y los recursos se agrupan por tema; los ejercicios, por bloques con nombre. El panel permite elegir sección, crear o reutilizar un bloque y reasignar materiales al editarlos. Los materiales anteriores sin sección aparecen en Temario. No hay tareas, notas ni seguimiento individual.
 
@@ -42,7 +46,7 @@ npx playwright install chromium
 npm test
 ```
 
-Playwright comprueba escritorio y móvil: navegación, enlaces profundos, contenido del curso, contacto, ambos niveles, bloqueo de escrituras en la vista previa, credenciales sin selector de rol, secciones y bloques, subida, edición, descarga y borrado de materiales, gestión de torneos, archivos rechazados, configuración fallida, tema oscuro y desbordamientos entre 320 y 1440 px. Los flujos de gestión usan una API simulada exclusivamente en las pruebas, sin cuentas ni credenciales de prueba en la aplicación. No sustituyen las pruebas de autorización del futuro servidor. Incluye análisis automatizado de accesibilidad con axe; no sustituye una auditoría manual completa ni una prueba en todos los dispositivos físicos.
+Playwright comprueba escritorio y móvil: navegación, enlaces profundos, contenido del curso, contacto, ambos niveles, bloqueo del aula sin servicio, contraseña de alumnos y acceso separado del equipo sin selector de rol, secciones y bloques, subida, edición, descarga y borrado de materiales, gestión de torneos, archivos rechazados, configuración fallida, tema oscuro y desbordamientos entre 320 y 1440 px. Los flujos de gestión usan una API simulada exclusivamente en las pruebas, sin cuentas ni credenciales de prueba en la aplicación. No sustituyen las pruebas de autorización del futuro servidor. Incluye análisis automatizado de accesibilidad con axe; no sustituye una auditoría manual completa ni una prueba en todos los dispositivos físicos.
 
 ## Publicación
 
@@ -50,7 +54,7 @@ Cada push a `main` ejecuta `.github/workflows/deploy.yml`: instala dependencias,
 
 ## Conectar el servicio definitivo
 
-`public/config.json` contiene `apiBaseUrl`. Vacío activa la vista previa de solo lectura. Cuando exista un servicio compatible, indica su URL HTTPS; por ejemplo:
+`public/config.json` contiene `apiBaseUrl`. Vacío mantiene únicamente la web pública, con aula y gestión bloqueadas. Cuando exista un servicio compatible, indica su URL HTTPS; por ejemplo:
 
 ```json
 { "apiBaseUrl": "https://api.tu-dominio.es" }
@@ -58,7 +62,7 @@ Cada push a `main` ejecuta `.github/workflows/deploy.yml`: instala dependencias,
 
 Una carpeta o URL de almacenamiento por sí sola no basta: hay que implementar autenticación, autorización y almacenamiento en un servidor. El cliente remoto ya está preparado. El contrato y los requisitos están en [docs/API.md](docs/API.md). Si falla un servicio configurado, la aplicación no se cambia silenciosamente a la demo.
 
-La autenticación prevista utiliza cuentas con correo y contraseña para alumnos, profesores y administradores, con roles decididos y comprobados en el servidor. Los materiales deben permanecer fuera de este repositorio y de las carpetas públicas de GitHub Pages. Los datos de demostración no se migran automáticamente.
+La autenticación prevista utiliza una contraseña de clases para los alumnos y cuentas personales con correo y contraseña para profesores y administradores. El servidor decide y comprueba los permisos. Los materiales deben permanecer fuera de este repositorio y de las carpetas públicas de GitHub Pages. Los datos de demostración no se migran automáticamente.
 
 ## Editar información pública
 

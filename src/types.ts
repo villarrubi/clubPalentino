@@ -7,7 +7,7 @@ export const sectionNames: Record<MaterialSection, string> = {
   resources: "Recursos",
 };
 export interface Credentials {
-  email: string;
+  email?: string;
   password: string;
 }
 export interface Session {
@@ -60,7 +60,6 @@ export interface Repository {
   mode: "demo" | "remote";
   session(): Promise<Session | null>;
   login(credentials: Credentials): Promise<Session>;
-  previewStudent?(): Promise<Session>;
   logout(): Promise<void>;
   materials(): Promise<Material[]>;
   saveMaterial(input: MaterialInput, file?: File, id?: string): Promise<void>;

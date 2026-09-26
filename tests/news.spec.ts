@@ -255,15 +255,19 @@ test("migración: conserva torneos y archivos existentes al añadir noticias", a
   await expect(page.getByRole("heading", { name: /140 jugadores/ })).toBeVisible();
   await page.goto("/#/torneos");
   await expect(page.getByRole("heading", { name: "Torneo anterior" })).toBeVisible();
+  // The old local files remain on disk, but are not exposed through an unauthenticated preview.
   await page.goto("/#/aula/iniciacion");
-  await page.getByRole("button", { name: "Explorar el aula" }).click();
-  await expect(page.getByRole("heading", { name: "Temario", exact: true })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Clase anterior" })).toBeVisible();
-  expect(
-    await page.evaluate(async () => {
-      const path = "/src/repository.ts";
-      const { createRepository } = await import(path);
-      return (await (await createRepository()).download("old-material")).text();
-    }),
-  ).toBe("guardado");
+  await expect(page.getByRole("button", { name: "Entrar", exact: true })).toBeDisabled();
+  expect(await page.evaluate(async () => {
+    return new Promise<string>((resolve, reject) => {
+      const request = indexedDB.open("palentino-demo-v1", 2);
+      request.onsuccess = () => {
+        const db = request.result;
+        const read = db.transaction("files", "readonly").objectStore("files").get("old-material");
+        read.onsuccess = async () => { const text = await read.result.text(); db.close(); resolve(text); };
+        read.onerror = () => reject(read.error);
+      };
+      request.onerror = () => reject(request.error);
+    });
+  })).toBe("guardado");
 });
