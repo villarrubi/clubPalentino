@@ -368,6 +368,7 @@ test("profesor: subir, editar, descargar, buscar y eliminar materiales", async (
   await dialog.getByRole("button", { name: "Guardar cambios" }).click();
   await expect(dialog).not.toBeVisible();
   await page.getByRole("button", { name: "Cerrar sesión" }).click();
+  await expect(page).toHaveURL(/#\/acceso$/);
   await login(page, "Alumnado");
   await page.goto("/#/aula/avanzado");
   await expect(
@@ -393,6 +394,7 @@ test("profesor: subir, editar, descargar, buscar y eliminar materiales", async (
     .analyze();
   expect(a11y.violations).toEqual([]);
   await page.getByRole("button", { name: "Salir", exact: true }).click();
+  await expect(page).toHaveURL(/#\/acceso$/);
   await login(page, "Profesor");
   await page
     .getByRole("button", { name: "Eliminar Finales prácticos" })

@@ -134,6 +134,7 @@ test("noticias: foto, publicación pública, edición, sustitución y borrado pe
   await dialog.getByRole("button", { name: "Guardar cambios" }).click();
   await expect(dialog).not.toBeVisible();
   await page.getByRole("button", { name: "Cerrar sesión" }).click();
+  await expect(page).toHaveURL(/#\/acceso$/);
   await page.goto("/");
   await expect(
     page.getByRole("heading", { name: "Encuentro de otoño" }),
@@ -195,6 +196,7 @@ test("noticias: el servicio deniega escritura a profesores y alumnos", async ({ 
     });
     expect(result).toContain("no tiene permiso");
     await page.getByRole("button", { name: role === "Profesor" ? "Cerrar sesión" : "Salir", exact: true }).click();
+    await expect(page).toHaveURL(/#\/acceso$/);
   }
 });
 
