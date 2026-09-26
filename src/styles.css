@@ -2,33 +2,41 @@
 
 :root {
   font-family: "DM Sans Variable", sans-serif;
-  color: #211d3b;
-  background: #faf9f6;
+  color: #253340;
+  background: #fafaf8;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
-  --bg: #faf9f6;
+  --bg: #fafaf8;
   --surface: #ffffff;
-  --text: #211d3b;
-  --muted: #6b6572;
-  --purple: #51288f;
-  --purple-hover: #3e1c71;
-  --tint: #f0ebf6;
-  --line: #e4e0e8;
-  --soft: #f4f1f6;
+  --text: #253340;
+  --muted: #5c6773;
+  --accent: #29465f;
+  --accent-hover: #1c354b;
+  --tint: #edf1f4;
+  --line: #dde2e6;
+  --soft: #f3f4f3;
+  --brand: #614183;
+  --board: #8b9cad;
+  --news-bg: #eeece6;
+  --news-pattern: #ddded8;
   --danger: #b52c3d;
   --heading: "Outfit Variable", sans-serif;
   color-scheme: light;
 }
 [data-theme="dark"] {
-  --bg: #121027;
-  --surface: #1b1734;
-  --text: #f5f1f9;
-  --muted: #bcb2c8;
-  --purple: #c6a4ff;
-  --purple-hover: #dbbfff;
-  --tint: #292044;
-  --line: #3c344f;
-  --soft: #201a38;
+  --bg: #121c27;
+  --surface: #1b2734;
+  --text: #edf1f4;
+  --muted: #acb8c4;
+  --accent: #b8ccdd;
+  --accent-hover: #d5e1eb;
+  --tint: #23313f;
+  --line: #354351;
+  --soft: #192531;
+  --brand: #b5a0cf;
+  --board: #475f73;
+  --news-bg: #24313d;
+  --news-pattern: #324352;
   --danger: #ff99a5;
   color-scheme: dark;
   color: var(--text);
@@ -60,7 +68,7 @@ textarea {
   outline-offset: 5px;
 }
 :focus-visible {
-  outline: 3px solid var(--purple);
+  outline: 3px solid var(--accent);
 }
 main:focus {
   outline: none;
@@ -120,7 +128,7 @@ img {
   min-height: 65vh;
 }
 .eyebrow {
-  color: var(--purple);
+  color: var(--accent);
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.16em;
@@ -147,7 +155,7 @@ img {
   left: 24px;
   z-index: 40;
   background: var(--surface);
-  color: var(--purple);
+  color: var(--accent);
   padding: 16px;
 }
 .skip-link:focus {
@@ -206,7 +214,7 @@ img {
 }
 .main-navigation > a:hover,
 .main-navigation > a[aria-current] {
-  color: var(--purple);
+  color: var(--accent);
 }
 .main-navigation > a[aria-current]::after {
   content: "";
@@ -215,7 +223,7 @@ img {
   left: 0;
   width: 100%;
   height: 2px;
-  background: var(--purple);
+  background: var(--brand);
 }
 .header-actions {
   display: flex;
@@ -234,8 +242,8 @@ img {
   white-space: nowrap;
 }
 .header-area:hover {
-  border-color: var(--purple);
-  color: var(--purple);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .icon-button {
   border: 0;
@@ -249,7 +257,7 @@ img {
   border-radius: 5px;
 }
 .icon-button:hover {
-  color: var(--purple);
+  color: var(--accent);
   background: var(--tint);
 }
 .icon-button svg {
@@ -269,7 +277,7 @@ img {
   padding: 13px 22px;
   border: 1px solid transparent;
   border-radius: 5px;
-  background: var(--purple);
+  background: var(--accent);
   color: #fff;
   font-size: 0.82rem;
   font-weight: 600;
@@ -281,7 +289,7 @@ img {
   height: 19px;
 }
 .button:hover {
-  background: var(--purple-hover);
+  background: var(--accent-hover);
 }
 .button:active {
   transform: translateY(1px);
@@ -295,7 +303,7 @@ img {
   background: var(--tint);
 }
 [data-theme="dark"] .button:not(.button-secondary):not(.button-danger) {
-  color: #241337;
+  color: #142433;
 }
 .button-danger {
   background: #ad2839;
@@ -316,7 +324,7 @@ img {
   gap: 9px;
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--purple);
+  color: var(--accent);
   padding: 5px 0;
   border: 0;
   background: none;
@@ -355,9 +363,9 @@ img {
   height: 17px;
   display: inline-block;
   background: conic-gradient(
-    var(--purple) 25%,
+    var(--brand) 25%,
     transparent 0 50%,
-    var(--purple) 0 75%,
+    var(--brand) 0 75%,
     transparent 0
   );
   background-size: 11px 11px;
@@ -370,7 +378,7 @@ img {
 }
 .hero h1 span,
 .login-intro h1 span {
-  color: var(--purple);
+  color: var(--accent);
 }
 .hero-description {
   color: var(--muted);
@@ -389,7 +397,7 @@ img {
   margin-top: 43px;
 }
 .hero-foot svg {
-  color: var(--purple);
+  color: var(--accent);
 }
 .hero-foot strong {
   font-weight: 500;
@@ -440,10 +448,10 @@ img {
 .quick-links > a > svg {
   width: 18px;
   margin-left: auto;
-  color: var(--purple);
+  color: var(--accent);
 }
 .quick-icon {
-  color: var(--purple);
+  color: var(--accent);
 }
 .quick-links strong,
 .quick-links small {
@@ -460,7 +468,7 @@ img {
   color: var(--muted);
 }
 .quick-links a:hover strong {
-  color: var(--purple);
+  color: var(--accent);
 }
 .section-heading {
   display: flex;
@@ -483,12 +491,12 @@ img {
 }
 .news-art {
   min-height: 340px;
-  background: #e9e1f3;
+  background: var(--news-bg);
   border-radius: 6px;
   padding: 30px;
   position: relative;
   overflow: hidden;
-  color: #51288f;
+  color: var(--accent);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -499,9 +507,9 @@ img {
   width: 260px;
   height: 260px;
   background: conic-gradient(
-    #d7c9e8 25%,
+    var(--news-pattern) 25%,
     transparent 0 50%,
-    #d7c9e8 0 75%,
+    var(--news-pattern) 0 75%,
     transparent 0
   );
   background-size: 130px 130px;
@@ -547,7 +555,7 @@ img {
   margin-bottom: 20px;
 }
 .news-copy h3 a:hover {
-  color: var(--purple);
+  color: var(--accent);
 }
 .news-copy p {
   color: var(--muted);
@@ -571,7 +579,7 @@ img {
   gap: 6px;
 }
 .tag {
-  color: var(--purple);
+  color: var(--accent);
   background: var(--tint);
   font-weight: 600;
   padding: 6px 9px;
@@ -618,12 +626,12 @@ img {
   justify-content: center;
 }
 .school-board > .dark-square {
-  background: var(--purple);
+  background: var(--board);
 }
 .school-board svg {
   width: 75%;
   height: 75%;
-  color: var(--purple);
+  color: var(--accent);
 }
 .school-board .dark-square svg {
   color: var(--bg);
@@ -632,7 +640,7 @@ img {
   position: absolute;
   bottom: 32px;
   left: 30px;
-  color: var(--purple);
+  color: var(--accent);
   font-family: var(--heading);
   font-size: 2.3rem;
   letter-spacing: -0.04em;
@@ -660,7 +668,7 @@ img {
   margin-bottom: 12px;
 }
 .check-list svg {
-  color: var(--purple);
+  color: var(--accent);
 }
 .empty-state {
   text-align: center;
@@ -673,7 +681,7 @@ img {
   width: 65px;
   height: 65px;
   margin: 0 auto 18px;
-  color: var(--purple);
+  color: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -752,7 +760,7 @@ img {
   align-items: center;
 }
 .footer-top nav a:hover {
-  color: var(--purple);
+  color: var(--accent);
   text-decoration: underline;
 }
 .footer-top nav span {
@@ -818,7 +826,7 @@ img {
 }
 .course-icon {
   margin-bottom: 32px;
-  color: var(--purple);
+  color: var(--accent);
 }
 .course-icon svg {
   width: 56px;
@@ -852,7 +860,7 @@ img {
 .details-list svg {
   width: 23px;
   height: 23px;
-  color: var(--purple);
+  color: var(--accent);
   margin-top: 2px;
 }
 .details-list strong,
@@ -877,7 +885,7 @@ img {
   border-radius: 6px;
 }
 .student-callout > svg {
-  color: var(--purple);
+  color: var(--accent);
 }
 .student-callout h3 {
   font-size: 1.35rem;
@@ -908,7 +916,7 @@ img {
   align-items: center;
   gap: 9px;
   font-size: 0.9rem;
-  color: var(--purple);
+  color: var(--accent);
 }
 .contact-information > .muted {
   font-size: 0.82rem;
@@ -933,7 +941,7 @@ img {
 }
 .contact-brand h3 {
   font-size: 2rem;
-  color: var(--purple);
+  color: var(--accent);
   line-height: 1.2;
   margin-bottom: 20px;
 }
@@ -963,8 +971,8 @@ img {
 }
 .segmented button.selected {
   background: var(--surface);
-  color: var(--purple);
-  box-shadow: 0 1px 4px #2513330d;
+  color: var(--accent);
+  box-shadow: 0 1px 4px #2433450d;
 }
 .tournament-list {
   display: grid;
@@ -986,7 +994,7 @@ img {
   padding: 14px 10px;
   text-align: center;
   background: var(--tint);
-  color: var(--purple);
+  color: var(--accent);
   display: flex;
   flex-direction: column;
 }
@@ -1028,7 +1036,7 @@ img {
   padding: 17px 20px;
   border-radius: 5px;
   margin-bottom: 32px;
-  color: var(--purple);
+  color: var(--accent);
 }
 .demo-notice p {
   margin: 0;
@@ -1064,7 +1072,7 @@ img {
   color: var(--muted);
 }
 .login-benefit svg {
-  color: var(--purple);
+  color: var(--accent);
   margin-top: 4px;
 }
 .login-benefit strong {
@@ -1079,7 +1087,7 @@ img {
 }
 .login-lock {
   display: inline-flex;
-  color: var(--purple);
+  color: var(--accent);
   background: var(--tint);
   border-radius: 50%;
   padding: 14px;
@@ -1160,7 +1168,7 @@ textarea {
   line-height: 1.6;
 }
 .login-help:hover {
-  color: var(--purple);
+  color: var(--accent);
 }
 .form-error {
   background: var(--soft);
@@ -1190,7 +1198,7 @@ textarea {
     transform 0.2s;
 }
 .campus-courses a:hover {
-  border-color: var(--purple);
+  border-color: var(--accent);
   transform: translateY(-3px);
 }
 .course-card-bottom {
@@ -1221,8 +1229,8 @@ textarea {
   border-bottom: 2px solid transparent;
 }
 .course-tabs a[aria-current] {
-  color: var(--purple);
-  border-color: var(--purple);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 .library-toolbar {
   display: flex;
@@ -1264,7 +1272,7 @@ textarea {
   overflow-wrap: anywhere;
 }
 .topic-group > h2 svg {
-  color: var(--purple);
+  color: var(--accent);
 }
 .topic-group > h2 > span {
   color: var(--muted);
@@ -1293,7 +1301,7 @@ textarea {
   height: 52px;
   border-radius: 5px;
   background: var(--tint);
-  color: var(--purple);
+  color: var(--accent);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1340,7 +1348,7 @@ textarea {
   border: 0;
   border-radius: 4px;
   background: var(--tint);
-  color: var(--purple);
+  color: var(--accent);
   font-size: 0.78rem;
   font-weight: 600;
 }
@@ -1387,10 +1395,10 @@ textarea {
   max-height: calc(100dvh - 48px);
   overflow-y: auto;
   overscroll-behavior: contain;
-  box-shadow: 0 20px 80px #24133033;
+  box-shadow: 0 20px 80px #24334533;
 }
 .modal::backdrop {
-  background: #17121fc4;
+  background: #101923c4;
 }
 .modal-heading {
   display: flex;
@@ -1432,7 +1440,7 @@ textarea {
   padding: 22px;
 }
 .upload-zone > svg {
-  color: var(--purple);
+  color: var(--accent);
   margin-bottom: 10px;
 }
 .upload-zone > label {
@@ -1447,7 +1455,7 @@ textarea {
 }
 .upload-zone input::file-selector-button {
   padding: 9px 12px;
-  color: var(--purple);
+  color: var(--accent);
   background: var(--tint);
   border: 1px solid var(--line);
   border-radius: 4px;
@@ -1464,7 +1472,7 @@ textarea {
   overflow-wrap: anywhere;
 }
 .upload-zone.dragging {
-  border-color: var(--purple);
+  border-color: var(--accent);
   background: var(--tint);
 }
 .toast {
@@ -1478,7 +1486,7 @@ textarea {
   padding: 15px 24px;
   border-radius: 6px;
   font-size: 0.84rem;
-  box-shadow: 0 5px 30px #20103022;
+  box-shadow: 0 5px 30px #24334522;
   opacity: 0;
   pointer-events: none;
   max-width: calc(100% - 32px);
@@ -1515,7 +1523,7 @@ textarea {
   gap: 16px;
 }
 .school-enrollment > div > svg {
-  color: var(--purple);
+  color: var(--accent);
 }
 .school-enrollment strong,
 .school-enrollment small {
@@ -1534,7 +1542,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 9px;
-  color: var(--purple);
+  color: var(--accent);
   font-size: 0.84rem;
   font-weight: 600;
 }
@@ -1548,7 +1556,7 @@ textarea {
   max-width: 90ch;
 }
 .flexible-groups svg {
-  color: var(--purple);
+  color: var(--accent);
   margin-top: 3px;
 }
 .school-facts {
@@ -1563,7 +1571,7 @@ textarea {
 }
 .price-block > strong {
   display: block;
-  color: var(--purple);
+  color: var(--accent);
   font-family: var(--heading);
   font-weight: 500;
   font-size: 3.2rem;
@@ -1588,7 +1596,7 @@ textarea {
   margin-top: 25px;
 }
 .school-venue > svg {
-  color: var(--purple);
+  color: var(--accent);
 }
 .school-venue strong {
   font-size: 0.9rem;
@@ -1616,7 +1624,7 @@ textarea {
 }
 .contact-value {
   font-size: 0.93rem;
-  color: var(--purple);
+  color: var(--accent);
   overflow-wrap: anywhere;
 }
 .contact-value:hover {
@@ -1723,7 +1731,7 @@ textarea {
     right: 0;
     padding: 15px 24px 22px;
     background: var(--bg);
-    box-shadow: 0 15px 20px #25133312;
+    box-shadow: 0 15px 20px #24334512;
     border-bottom: 1px solid var(--line);
   }
   .main-navigation.is-open {
@@ -1747,7 +1755,7 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    color: var(--purple);
+    color: var(--accent);
   }
   .hero h1 {
     font-size: 3.8rem;
@@ -1851,7 +1859,7 @@ textarea {
     right: 0;
     padding: 15px 20px 22px;
     background: var(--bg);
-    box-shadow: 0 15px 20px #25133312;
+    box-shadow: 0 15px 20px #24334512;
     border-bottom: 1px solid var(--line);
   }
   .main-navigation.is-open {
@@ -1875,7 +1883,7 @@ textarea {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    color: var(--purple);
+    color: var(--accent);
   }
   .header-actions {
     gap: 5px;

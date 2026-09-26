@@ -2,8 +2,8 @@
 
 Web de un club de ajedrez de Palencia, para alumnado de todas las edades, familias y jugadores. Interfaz editorial y deportiva, cercana, con el escudo original como referencia. Proyecto nuevo; no parte de una plantilla de marca ajena.
 
-- Base clara marfil, titulares azul tinta `#211d3b`, morado del club `#51288f`.
-- Tema oscuro azul profundo `#121027`, inspirado en el tono del cartel de Maristas aportado por el usuario; el contenido de aquella propuesta no forma parte de la oferta de clases.
+- Base clara neutra `#fafaf8`, titulares gris tinta `#253340` y controles azul pizarra `#29465f`. Fondos de apoyo gris suave, sin grandes superficies lavanda. El morado queda en el escudo, la fotografía y pequeños detalles de identidad.
+- Tema oscuro azul profundo `#121c27`, con superficies azul grisáceo y acentos desaturados. Inspirado en el tono del cartel de Maristas aportado por el usuario; el contenido de aquella propuesta no forma parte de la oferta de clases.
 - Tipografía Outfit para titulares y DM Sans para lectura y controles, alojadas localmente.
 - Iconos Phosphor. Fotografías generadas y motivos de tablero solo donde aportan contexto.
 - Espaciado amplio en la web pública, más compacto en biblioteca y panel.
