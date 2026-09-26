@@ -84,12 +84,12 @@ export function HomeHero() {
           <div className="hero-cover-entrance">
             <m.img
               className="hero-cover-image"
-              src={asset("ajedrez-hero.webp")}
-              srcSet={`${asset("ajedrez-hero-mobile.webp")} 800w, ${asset("ajedrez-hero.webp")} 1120w`}
+              src={asset("editorial/ajedrez-hero.webp")}
+              srcSet={`${asset("editorial/ajedrez-hero-mobile.webp")} 800w, ${asset("editorial/ajedrez-hero.webp")} 1120w`}
               sizes="(max-width: 760px) calc(100vw - 40px), (max-width: 1352px) calc((100vw - 152px) / 2), 585px"
               width="1120"
               height="1400"
-              alt="Un caballo, una torre y un peón sobre un tablero de ajedrez."
+              alt="Ilustración en azul y marfil de una torre, un alfil y dos peones sobre un tablero."
               fetchPriority="high"
               style={{ y: imageY, scale: 1.06 }}
             />
