@@ -127,6 +127,59 @@ test("scroll: caballo, capítulos, regreso y movimiento reducido", async ({
   await expect(journey).toHaveAttribute("data-active-step", "0");
 });
 
+test("activar animaciones con movimiento reducido: scroll real, pausa y persistencia", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "reduced");
+  await expect(page.locator(".knight-photo")).toHaveAttribute(
+    "src",
+    /caballo-staunton\.webp$/,
+  );
+  await expect
+    .poll(() =>
+      page
+        .locator(".knight-photo")
+        .evaluate((image: HTMLImageElement) => image.naturalWidth),
+    )
+    .toBeGreaterThan(0);
+  await page.getByRole("button", { name: "Activar animaciones" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
+  const piece = page.locator(".hero-piece");
+  const before = await piece.evaluate((el) => getComputedStyle(el).transform);
+  await page.evaluate(() => scrollTo({ top: 350, behavior: "instant" }));
+  await expect
+    .poll(() => piece.evaluate((el) => getComputedStyle(el).transform))
+    .not.toBe(before);
+  await page
+    .locator('[data-chapter="1"]')
+    .evaluate((el) =>
+      scrollTo({
+        top: el.getBoundingClientRect().top + scrollY - innerHeight * 0.4,
+        behavior: "instant",
+      }),
+    );
+  await expect(page.locator(".chess-journey")).toHaveAttribute(
+    "data-active-step",
+    "1",
+  );
+  await expect(page.locator(".journey-knight")).toHaveCSS(
+    "transform",
+    "matrix(1, 0, 0, 1, 100, 260)",
+  );
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "full");
+  await page.getByRole("button", { name: "Pausar animaciones" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "reduced");
+  const paused = await piece.evaluate((el) => getComputedStyle(el).transform);
+  await page.evaluate(() => scrollTo({ top: 450, behavior: "instant" }));
+  await expect(piece).toHaveCSS("transform", paused);
+  await expect(page.locator(".reveal-pending")).toHaveCount(0);
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-motion", "reduced");
+});
+
 test("menú, enlaces profundos y página desconocida", async ({
   page,
   isMobile,

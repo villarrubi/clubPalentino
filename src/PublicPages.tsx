@@ -40,7 +40,7 @@ export function NewsFeature({ compact = false }: { compact?: boolean }) {
           <br />
           ALBERTO ACERO
         </span>
-        <ChessKnight className="news-chess" ink />
+        <ChessKnight className="news-chess" />
         <span className="news-art-bottom">
           AJEDREZ EN PALENCIA <ArrowUpRight size={24} aria-hidden="true" />
         </span>
@@ -148,11 +148,17 @@ function TournamentList({ short = false }: { short?: boolean }) {
     </>
   );
 }
-export function Home() {
+export function Home({
+  motionEnabled,
+  onMotionToggle,
+}: {
+  motionEnabled: boolean;
+  onMotionToggle: () => void;
+}) {
   return (
     <>
-      <HomeHero />
-      <ChessJourney />
+      <HomeHero motionEnabled={motionEnabled} onMotionToggle={onMotionToggle} />
+      <ChessJourney motionEnabled={motionEnabled} />
       <section className="section container">
         <div className="section-heading" data-reveal>
           <div>
@@ -249,7 +255,7 @@ export function Classes() {
       <div className="course-grid">
         <article className="course-card" data-reveal>
           <div className="course-icon">
-            <ChessKnight ink />
+            <ChessKnight />
           </div>
           <p className="eyebrow">LOS PRIMEROS PASOS</p>
           <h2>Iniciación</h2>
@@ -272,7 +278,7 @@ export function Classes() {
           data-reveal-delay="1"
         >
           <div className="course-icon">
-            <ChessKnight ink />
+            <ChessKnight />
           </div>
           <p className="eyebrow">UN PASO MÁS ALLÁ</p>
           <h2>Avanzado</h2>

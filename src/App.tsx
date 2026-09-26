@@ -13,6 +13,7 @@ import { Campus, Login } from "./PrivatePages";
 import { Admin } from "./Admin";
 import { Intro, LinkButton, Logo, Loading } from "./components";
 import { useScrollReveal } from "./useScrollReveal";
+import { useMotionPreference } from "./useMotionPreference";
 
 const navigation = [
   ["/", "Inicio"],
@@ -52,7 +53,8 @@ export default function App() {
   });
   const { session, ready, repository } = useClub();
   const main = useRef<HTMLElement>(null);
-  useScrollReveal(main, route);
+  const motionPreference = useMotionPreference();
+  useScrollReveal(main, route, motionPreference.enabled);
   const menuButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     const navigate = () => {
@@ -100,7 +102,13 @@ export default function App() {
       </div>
     );
   else if (isPrivate && !session) content = <Login destination={route} />;
-  else if (route === "/") content = <Home />;
+  else if (route === "/")
+    content = (
+      <Home
+        motionEnabled={motionPreference.enabled}
+        onMotionToggle={motionPreference.toggle}
+      />
+    );
   else if (route === "/clases" || route === "/escuela") content = <Classes />;
   else if (route === "/contacto") content = <Contact />;
   else if (route === "/torneos") content = <Tournaments />;

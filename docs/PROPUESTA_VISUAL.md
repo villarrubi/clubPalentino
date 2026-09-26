@@ -23,4 +23,4 @@ La portada presenta al club mediante tres momentos: **Aprende, Juega, Comparte**
 
 ## Implementación
 
-Eliminación del pequeño icono del antetítulo y de los adornos de la cabecera anterior. Ilustración propia de una pieza de ajedrez en lugar del icono de cabeza de caballo. Entradas al hacer scroll, profundidad en la pieza y tablero de portada, y desplazamiento entre las casillas a1, b3 y d4 coordinado con los capítulos. Implementación nativa, sin instalar Motion ni copiar componentes de terceros. Comprobada en escritorio y móvil, con teclado y movimiento reducido.
+Eliminación del pequeño icono del antetítulo y de los adornos de la cabecera anterior. Recorte fotográfico generado de una pieza Staunton en lugar del dibujo vectorial anterior. Entradas al hacer scroll, profundidad en la pieza y tablero de portada, y desplazamiento entre las casillas a1, b3 y d4 coordinado con los capítulos. Portada animada con Motion; observadores nativos para los capítulos y entradas. Selector explícito para activar o pausar animaciones, con la preferencia del sistema como valor inicial. Comprobada en escritorio y móvil, con teclado y movimiento reducido.

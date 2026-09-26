@@ -4,11 +4,11 @@ import { useEffect, type RefObject } from "react";
 export function useScrollReveal(
   root: RefObject<HTMLElement | null>,
   route: string,
+  enabled: boolean,
 ) {
   useEffect(() => {
     const container = root.current;
     if (!container || !("IntersectionObserver" in window)) return;
-    const preference = matchMedia("(prefers-reduced-motion: reduce)");
     const elements = [
       ...container.querySelectorAll<HTMLElement>("[data-reveal]"),
     ];
@@ -26,7 +26,7 @@ export function useScrollReveal(
     };
     const start = () => {
       reset();
-      if (preference.matches) return;
+      if (!enabled) return;
       observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
@@ -54,12 +54,10 @@ export function useScrollReveal(
       }
     };
     start();
-    preference.addEventListener("change", start);
     container.addEventListener("focusin", focus);
     return () => {
       reset();
-      preference.removeEventListener("change", start);
       container.removeEventListener("focusin", focus);
     };
-  }, [root, route]);
+  }, [root, route, enabled]);
 }

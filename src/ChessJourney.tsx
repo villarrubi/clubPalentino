@@ -3,6 +3,14 @@ import { ArrowDown, ArrowUpRight } from "@phosphor-icons/react";
 import { LinkButton } from "./components";
 import { ChessKnight } from "./ChessKnight";
 import "./journey.css";
+import {
+  LazyMotion,
+  domAnimation,
+  useScroll,
+  useTransform,
+} from "motion/react";
+import * as m from "motion/react-m";
+import { asset } from "./data";
 
 const chapters = [
   {
@@ -43,78 +51,135 @@ const chapters = [
   },
 ];
 
-export function HomeHero() {
+export function HomeHero({
+  motionEnabled,
+  onMotionToggle,
+}: {
+  motionEnabled: boolean;
+  onMotionToggle: () => void;
+}) {
+  const hero = useRef<HTMLElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: hero,
+    offset: ["start start", "end start"],
+  });
+  const pieceX = useTransform(scrollYProgress, [0, 1], [0, -65]);
+  const pieceY = useTransform(scrollYProgress, [0, 1], [0, -75]);
+  const pieceRotate = useTransform(scrollYProgress, [0, 1], [0, -9]);
+  const boardRotate = useTransform(scrollYProgress, [0, 1], [-18, -4]);
   const journey = () => {
     document.getElementById("recorrido")?.scrollIntoView({
-      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? "instant"
-        : "smooth",
+      behavior: motionEnabled ? "smooth" : "instant",
       block: "start",
     });
     document.getElementById("recorrido-titulo")?.focus({ preventScroll: true });
   };
   return (
-    <section className="home-hero container" aria-labelledby="home-title">
-      <div className="home-hero-copy">
-        <p className="eyebrow">TU CLUB DE AJEDREZ EN PALENCIA</p>
-        <h1 id="home-title">
-          La próxima
-          <br />
-          jugada empieza
-          <br />
-          <em>contigo.</em>
-        </h1>
-        <p className="home-hero-description">
-          Un tablero. Infinitas formas de encontrarnos. <br />
-          Aprende, juega y comparte tu pasión por el ajedrez.
-        </p>
-        <div className="button-row">
-          <LinkButton href="#/escuela">Descubre la escuela</LinkButton>
-          <a className="text-link" href="#/torneos">
-            Ver torneos <ArrowUpRight aria-hidden="true" />
-          </a>
+    <LazyMotion features={domAnimation} strict>
+      <section
+        className="home-hero container"
+        aria-labelledby="home-title"
+        ref={hero}
+      >
+        <div className="home-hero-copy">
+          <p className="eyebrow">TU CLUB DE AJEDREZ EN PALENCIA</p>
+          <h1 id="home-title">
+            La próxima
+            <br />
+            jugada empieza
+            <br />
+            <em>contigo.</em>
+          </h1>
+          <p className="home-hero-description">
+            Un tablero. Infinitas formas de encontrarnos. <br />
+            Aprende, juega y comparte tu pasión por el ajedrez.
+          </p>
+          <div className="button-row">
+            <LinkButton href="#/escuela">Descubre la escuela</LinkButton>
+            <a className="text-link" href="#/torneos">
+              Ver torneos <ArrowUpRight aria-hidden="true" />
+            </a>
+          </div>
+          <div className="home-motion-controls">
+            <button className="journey-invitation" onClick={journey}>
+              Cada partida tiene un comienzo{" "}
+              <ArrowDown size={18} aria-hidden="true" />
+            </button>
+            <button
+              className="motion-toggle"
+              aria-pressed={motionEnabled}
+              aria-label={
+                motionEnabled ? "Pausar animaciones" : "Activar animaciones"
+              }
+              onClick={onMotionToggle}
+            >
+              <span className="motion-status" aria-hidden="true" />
+              {motionEnabled ? "Pausar animaciones" : "Activar animaciones"}
+            </button>
+          </div>
         </div>
-        <button className="journey-invitation" onClick={journey}>
-          Cada partida tiene un comienzo{" "}
-          <ArrowDown size={18} aria-hidden="true" />
-        </button>
-      </div>
-      <div className="hero-scene" aria-hidden="true">
-        <span className="hero-scene-word">Tu jugada.</span>
-        <div className="hero-board-plane">
-          {Array.from({ length: 25 }, (_, i) => (
-            <span
-              key={i}
-              className={(Math.floor(i / 5) + (i % 5)) % 2 ? "dark" : ""}
-            />
-          ))}
+        <div className="hero-scene" aria-hidden="true">
+          <span className="hero-scene-word">Tu jugada.</span>
+          <m.div
+            className="hero-board-plane"
+            style={{
+              rotateX: 50,
+              rotateZ: motionEnabled ? boardRotate : -18,
+              transformPerspective: 650,
+            }}
+          >
+            {Array.from({ length: 25 }, (_, i) => (
+              <span
+                key={i}
+                className={(Math.floor(i / 5) + (i % 5)) % 2 ? "dark" : ""}
+              />
+            ))}
+          </m.div>
+          <div className="hero-piece-shadow" />
+          <m.div
+            className="hero-piece"
+            style={{
+              x: motionEnabled ? pieceX : 0,
+              y: motionEnabled ? pieceY : 0,
+              rotate: motionEnabled ? pieceRotate : 0,
+            }}
+          >
+            <m.div
+              key={String(motionEnabled)}
+              className="hero-piece-entrance"
+              initial={
+                motionEnabled ? { opacity: 0, y: 70, scale: 0.86 } : false
+              }
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.95, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <ChessKnight className="knight-photo" large />
+            </m.div>
+          </m.div>
+          <div className="hero-scene-caption">
+            <span>01 / EL PRIMER MOVIMIENTO</span>
+            <span>Siempre hay una nueva posibilidad.</span>
+          </div>
         </div>
-        <div className="hero-piece-shadow" />
-        <ChessKnight className="hero-piece" />
-        <div className="hero-scene-caption">
-          <span>01 / EL PRIMER MOVIMIENTO</span>
-          <span>Siempre hay una nueva posibilidad.</span>
+        <div className="hero-bottom">
+          <span>Club Palentino de Ajedrez</span>
+          <span>Aprender. Jugar. Volver a encontrarnos.</span>
+          <span>Palencia, Castilla y León</span>
         </div>
-      </div>
-      <div className="hero-bottom">
-        <span>Club Palentino de Ajedrez</span>
-        <span>Aprender. Jugar. Volver a encontrarnos.</span>
-        <span>Palencia, Castilla y León</span>
-      </div>
-    </section>
+      </section>
+    </LazyMotion>
   );
 }
 
-export function ChessJourney() {
+export function ChessJourney({ motionEnabled }: { motionEnabled: boolean }) {
   const root = useRef<HTMLElement>(null);
   const [active, setActive] = useState(0);
   useEffect(() => {
     if (!("IntersectionObserver" in window)) return;
-    const media = matchMedia("(prefers-reduced-motion: reduce)");
     let observer: IntersectionObserver | undefined;
     const setup = () => {
       observer?.disconnect();
-      if (media.matches) {
+      if (!motionEnabled) {
         setActive(0);
         return;
       }
@@ -137,14 +202,12 @@ export function ChessJourney() {
         .forEach((step) => observer!.observe(step));
     };
     setup();
-    media.addEventListener("change", setup);
     addEventListener("resize", setup);
     return () => {
       observer?.disconnect();
-      media.removeEventListener("change", setup);
       removeEventListener("resize", setup);
     };
-  }, []);
+  }, [motionEnabled]);
   const position = chapters[active];
   return (
     <section
@@ -233,15 +296,13 @@ export function ChessJourney() {
                   }}
                 >
                   <ellipse cy="8" rx="20" ry="8" fill="#102839" opacity=".4" />
-                  <svg
+                  <image
+                    href={asset("caballo-staunton-small.webp")}
                     x="-31"
                     y="-65"
                     width="62"
                     height="78"
-                    viewBox="0 0 240 300"
-                  >
-                    <ChessKnight />
-                  </svg>
+                  />
                 </g>
               </svg>
             </div>

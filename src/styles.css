@@ -402,6 +402,7 @@ img {
   letter-spacing: -0.045em;
 }
 .news-chess {
+  object-fit: contain;
   position: absolute;
   z-index: 1;
   right: 34px;
@@ -638,9 +639,10 @@ img {
   margin-bottom: 32px;
   color: var(--accent);
 }
-.course-icon svg {
+.course-icon img {
   width: 56px;
   height: 56px;
+  object-fit: contain;
 }
 .class-details {
   display: grid;
@@ -1921,53 +1923,52 @@ textarea {
   }
 }
 /* Motion is confined to public storytelling, leaving forms and the classroom steady. */
-@media (prefers-reduced-motion: no-preference) {
-  [data-reveal].reveal-ready {
-    transition:
-      opacity 700ms ease,
-      transform 800ms cubic-bezier(0.2, 0.7, 0.2, 1);
-    transition-delay: var(--reveal-delay, 0ms);
-  }
-  [data-reveal].reveal-pending:not(:focus-within) {
-    opacity: 0;
-    transform: translateY(34px);
-  }
+html[data-motion="full"] [data-reveal].reveal-ready {
+  transition:
+    opacity 700ms ease,
+    transform 800ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+html[data-motion="full"] [data-reveal].reveal-pending:not(:focus-within) {
+  opacity: 0;
+  transform: translateY(34px);
+}
+html[data-motion="full"]
   [data-reveal="image"].reveal-pending:not(:focus-within) {
-    transform: translateY(28px) scale(0.96);
+  transform: translateY(28px) scale(0.96);
+}
+html[data-motion="full"] [data-reveal-delay="1"] {
+  --reveal-delay: 100ms;
+}
+html[data-motion="full"] [data-reveal-delay="2"] {
+  --reveal-delay: 200ms;
+}
+html[data-motion="full"] .button > svg,
+html[data-motion="full"] .course-icon img {
+  transition: transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@media (hover: hover) {
+  html[data-motion="full"] .course-card:hover .course-icon img {
+    transform: translateY(-4px) rotate(-6deg);
   }
-  [data-reveal-delay="1"] {
-    --reveal-delay: 100ms;
+  html[data-motion="full"] .button:hover > svg {
+    transform: translateX(3px);
   }
-  [data-reveal-delay="2"] {
-    --reveal-delay: 200ms;
+}
+/* Browsers without view timelines retain the section entrances above. */
+@supports (animation-timeline: view()) {
+  html[data-motion="full"] .news-chess {
+    animation: knight-depth linear both;
+    animation-timeline: --news-art;
+    animation-range: cover;
   }
-  .button > svg,
-  .course-icon svg {
-    transition: transform 300ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@media (max-width: 760px) {
+  html[data-motion="full"] [data-reveal] {
+    --reveal-delay: 0ms;
   }
-  @media (hover: hover) {
-    .course-card:hover .course-icon svg {
-      transform: translateY(-4px) rotate(-6deg);
-    }
-    .button:hover > svg {
-      transform: translateX(3px);
-    }
-  }
-  /* Browsers without view timelines retain the section entrances above. */
-  @supports (animation-timeline: view()) {
-    .news-chess {
-      animation: knight-depth linear both;
-      animation-timeline: --news-art;
-      animation-range: cover;
-    }
-  }
-  @media (max-width: 760px) {
-    [data-reveal] {
-      --reveal-delay: 0ms;
-    }
-    [data-reveal].reveal-pending:not(:focus-within) {
-      transform: translateY(20px);
-    }
+  html[data-motion="full"] [data-reveal].reveal-pending:not(:focus-within) {
+    transform: translateY(20px);
   }
 }
 @keyframes knight-depth {
@@ -1984,12 +1985,10 @@ textarea {
     transform: none !important;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation: none !important;
-    transition: none !important;
-  }
+html[data-motion="reduced"] *,
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+  scroll-behavior: auto !important;
+  animation: none !important;
+  transition: none !important;
 }
