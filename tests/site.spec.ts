@@ -1,13 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
-async function login(page: Page, role: "Alumnado" | "Profesor" | "Admin") {
-  await page.goto("/#/acceso");
-  await page.getByRole("button", { name: role, exact: true }).click();
-  await page.getByLabel(/Contraseña/).fill("palentino");
-  await page.getByRole("button", { name: "Entrar", exact: true }).click();
-  await expect(page).toHaveURL(role === "Alumnado" ? /#\/aula$/ : /#\/panel$/);
-}
+import { login, mockApi } from "./mockApi";
 
 async function revealPage(page: Page) {
   for (const element of await page.locator("[data-reveal]").all()) {
@@ -310,11 +304,13 @@ test("menú, enlaces profundos y página desconocida", async ({
 test("alumnos: contraseña, dos niveles, persistencia y permisos", async ({
   page,
 }) => {
+  await mockApi(page);
   await page.goto("/#/aula/avanzado");
-  await page.getByLabel("Contraseña de las clases").fill("incorrecta");
+  await page.getByLabel("Correo electrónico").fill("alumno@example.test");
+  await page.getByLabel("Contraseña", { exact: true }).fill("incorrecta");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText("palentino");
-  await page.getByLabel("Contraseña de las clases").fill("palentino");
+  await expect(page.getByRole("alert")).toContainText("credenciales no son correctas");
+  await page.getByLabel("Contraseña", { exact: true }).fill("test-password");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Clases de avanzado." }),

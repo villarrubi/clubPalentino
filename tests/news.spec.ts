@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { login } from "./mockApi";
 
 test("noticias remotas: envía la foto y conserva el formulario si falla el servicio", async ({
   page,
@@ -56,10 +57,7 @@ test("noticias remotas: envía la foto y conserva el formulario si falla el serv
 });
 
 async function openNewsPanel(page: Page) {
-  await page.goto("/#/acceso");
-  await page.getByRole("button", { name: "Admin", exact: true }).click();
-  await page.getByLabel(/Contraseña/).fill("palentino");
-  await page.getByRole("button", { name: "Entrar", exact: true }).click();
+  await login(page, "Admin");
   await page.getByRole("button", { name: "Noticias", exact: true }).click();
 }
 
@@ -185,49 +183,19 @@ test("noticias: foto, publicación pública, edición, sustitución y borrado pe
   );
 });
 
-test("noticias: solo el administrador puede escribir, incluso usando el repositorio directamente", async ({
-  page,
-}) => {
-  await page.goto("/#/acceso");
-  await page.getByRole("button", { name: "Profesor", exact: true }).click();
-  await page.getByLabel(/Contraseña/).fill("palentino");
-  await page.getByRole("button", { name: "Entrar", exact: true }).click();
-  await expect(
-    page.getByRole("button", { name: "Noticias", exact: true }),
-  ).toHaveCount(0);
-  const results = await page.evaluate(async () => {
-    const path = "/src/repository.ts";
-    const { createRepository } = await import(path);
-    const repository = await createRepository();
-    const input = {
-      title: "Sin permiso",
-      date: "2026-10-02",
-      summary: "Resumen",
-      content: "Contenido",
-      imageAlt: "",
-      source: "",
-      url: "",
-    };
-    const results: string[] = [];
-    for (const role of ["teacher", "student", null]) {
-      if (role) await repository.login(role, "palentino");
-      else await repository.logout();
-      for (const action of [
-        () => repository.saveNews(input),
-        () => repository.deleteNews("memorial-alberto-acero"),
-      ]) {
-        try {
-          await action();
-          results.push("allowed");
-        } catch (error) {
-          results.push((error as Error).message);
-        }
-      }
-    }
-    return results;
-  });
-  expect(results).toHaveLength(6);
-  for (const result of results) expect(result).toContain("no tiene permiso");
+test("noticias: el servicio deniega escritura a profesores y alumnos", async ({ page }) => {
+  for (const role of ["Profesor", "Alumnado"] as const) {
+    await login(page, role);
+    await expect(page.getByRole("button", { name: "Noticias", exact: true })).toHaveCount(0);
+    const result = await page.evaluate(async () => {
+      const path = "/src/repository.ts";
+      const { createRepository } = await import(path);
+      try { await (await createRepository()).deleteNews("noticia"); return "allowed"; }
+      catch (error) { return (error as Error).message; }
+    });
+    expect(result).toContain("no tiene permiso");
+    await page.getByRole("button", { name: role === "Profesor" ? "Cerrar sesión" : "Salir", exact: true }).click();
+  }
 });
 
 test("migración: conserva torneos y archivos existentes al añadir noticias", async ({
@@ -283,18 +251,14 @@ test("migración: conserva torneos y archivos existentes al añadir noticias", a
       };
     });
   });
-  await openNewsPanel(page);
-  await expect(
-    page.getByRole("heading", { name: /140 jugadores/ }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Torneos", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Torneo anterior" }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Materiales", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Clase anterior" }),
-  ).toBeVisible();
+  await page.goto("/#/noticias");
+  await expect(page.getByRole("heading", { name: /140 jugadores/ })).toBeVisible();
+  await page.goto("/#/torneos");
+  await expect(page.getByRole("heading", { name: "Torneo anterior" })).toBeVisible();
+  await page.goto("/#/aula/iniciacion");
+  await page.getByRole("button", { name: "Explorar el aula" }).click();
+  await expect(page.getByRole("heading", { name: "Temario", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Clase anterior" })).toBeVisible();
   expect(
     await page.evaluate(async () => {
       const path = "/src/repository.ts";

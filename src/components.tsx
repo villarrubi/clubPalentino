@@ -74,9 +74,9 @@ export function DemoNotice() {
     <aside className="demo-notice">
       <Info size={22} aria-hidden="true" />
       <p>
-        <strong>Demostración local.</strong> Los archivos y cambios se guardan
-        solo en este navegador y no se comparten con otros dispositivos. El
-        acceso todavía no es privado. Utiliza únicamente archivos de prueba.
+        <strong>Vista previa de solo lectura.</strong> Puedes consultar los
+        materiales de prueba guardados en este navegador. El acceso con cuenta
+        y la gestión de contenidos aún no están disponibles.
       </p>
     </aside>
   );

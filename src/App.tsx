@@ -113,7 +113,11 @@ export default function App() {
   else if (route === "/aula/iniciacion")
     content = <Campus course="iniciacion" />;
   else if (route === "/aula/avanzado") content = <Campus course="avanzado" />;
-  else if (route === "/panel" && session?.role !== "student")
+  else if (
+    route === "/panel" &&
+    repository.mode === "remote" &&
+    (session?.role === "teacher" || session?.role === "admin")
+  )
     content = <Admin />;
   else if (route === "/panel")
     content = (

@@ -15,10 +15,12 @@ Para cookies entre GitHub Pages y otro dominio, usar `HttpOnly; Secure; SameSite
 | Método y ruta | Entrada | Respuesta |
 | --- | --- | --- |
 | GET /session | Cookie | `null` si no hay sesión; `{ "role": "student", "name": "Alumno" }` si la hay |
-| POST /session | JSON `{role, password, email?}` | Sesión y cookie; error 401 para credenciales incorrectas |
+| POST /session | JSON `{email, password}` | Sesión y cookie; error 401 para credenciales incorrectas |
 | DELETE /session | Cookie | 204; revocar sesión y eliminar cookie |
 
-Roles: `student`, `teacher`, `admin`. `role` en la petición de acceso indica el modo solicitado; **no concede privilegios**. Verificar rol y credenciales en el servidor. Para alumnos, contraseña común con hash y sesión limitada a `student`; para personal, correo y contraseña individuales, hash fuerte y rol persistido por el administrador. Añadir caducidad, revocación y limitación de intentos.
+Roles de respuesta: `student`, `teacher`, `admin`. El formulario es único para todas las cuentas. **No aceptar un rol del cliente**: autenticar correo y contraseña y obtener el rol de la cuenta persistida en el servidor. Almacenar contraseñas con hash fuerte y sal; añadir caducidad, revocación y limitación de intentos. Nunca utilizar las antiguas credenciales públicas de demo. No hay contraseñas ni cuentas incluidas en la aplicación.
+
+El cliente utiliza únicamente la sesión devuelta por el servicio; no restaura roles desde sessionStorage. Sin servicio, solo existe una vista previa de alumno sin escritura. La autorización efectiva de cada operación sigue siendo responsabilidad del servidor. Este cambio de contrato de acceso debe implementarse antes de conectar una API anterior.
 
 Todos los alumnos pueden leer los materiales de ambos niveles. No hay matrícula por curso, tareas, notas ni seguimiento.
 
@@ -27,8 +29,8 @@ Todos los alumnos pueden leer los materiales de ambos niveles. No hay matrícula
 | Método y ruta | Permiso | Entrada y respuesta |
 | --- | --- | --- |
 | GET /materials | Cualquier sesión | Array de metadatos |
-| POST /materials | Profesor o admin | Multipart `title`, `topic`, `course`, `file`; 204 |
-| PATCH /materials/:id | Profesor o admin | Multipart `title`, `topic`, `course`, `file?`; 204 |
+| POST /materials | Profesor o admin | Multipart `title`, `topic`, `course`, `section`, `block`, `file`; 204 |
+| PATCH /materials/:id | Profesor o admin | Multipart `title`, `topic`, `course`, `section`, `block`, `file?`; 204 |
 | DELETE /materials/:id | Profesor o admin | Borrar metadatos y archivo; 204 |
 | GET /materials/:id/file | Cualquier sesión | Binario del archivo, tras comprobar sesión |
 
@@ -40,11 +42,15 @@ Metadatos:
   "title": "Finales de peones",
   "topic": "Finales",
   "course": "iniciacion",
+  "section": "exercises",
+  "block": "Bloque 1 · Finales de peones",
   "filename": "finales.pdf",
   "size": 14500,
   "updatedAt": "2026-09-26T12:00:00.000Z"
 }
 ```
+
+`section` admite `syllabus` (Temario), `exercises` (Ejercicios) o `resources` (Recursos). `block` es obligatorio para ejercicios, con hasta 80 caracteres tras normalizar espacios, y vacío para las otras secciones. El bloque agrupa ejercicios dentro de un nivel; se crea o reutiliza al guardar un material. Al cambiar el nombre en un material solo se reasigna ese material; un bloque sin ejercicios deja de mostrarse. El tema sigue siendo obligatorio e independiente del bloque. Migrar los registros anteriores sin sección a `syllabus` y bloque vacío (el cliente también ofrece esta compatibilidad de lectura).
 
 `course` admite `iniciacion` o `avanzado`. Título obligatorio, hasta 160 caracteres; tema obligatorio, hasta 80. Normalizar espacios. Validar en el servidor extensión, MIME y contenido, tamaño (1 byte a 25 MB), nombre de descarga y permisos de cada operación. Extensiones: pdf, ppt, pptx, doc, docx, odt, odp, pgn, zip, txt. No confiar en la validación del navegador.
 
@@ -88,7 +94,7 @@ La lectura añade `id`, `imageUrl` (cadena vacía si no hay foto) y `updatedAt` 
 
 `image` admite JPEG, PNG y WebP de hasta 5 MB. Comprobar formato, contenido decodificable, tamaño y permisos en el servidor. Al editar sin imagen, conservar la foto anterior; al sustituirla, coordinar el reemplazo del archivo y los metadatos. Las fotos de noticias son públicas, a diferencia de los materiales. El servidor debe devolver URLs válidas para esas fotos y denegar cualquier escritura a visitantes, alumnos y profesores.
 
-En la demo se utiliza IndexedDB versión 2: añade noticias sin borrar materiales, archivos o torneos existentes. La noticia de prensa original se importa una vez al crear el almacén; su borrado no la vuelve a importar. Las fotos se guardan como data URLs locales. El modo remoto necesita implementar estos endpoints antes de activarlo; la migración local no carga noticias en un servidor.
+La vista previa de solo lectura conserva IndexedDB versión 2: añade noticias sin borrar materiales, archivos o torneos existentes. La noticia de prensa original se importa una vez al crear el almacén; su borrado no la vuelve a importar. Las fotos de demostraciones anteriores se conservan como data URLs locales. No se permiten nuevas escrituras en modo demo. El modo remoto necesita implementar estos endpoints antes de activarlo; la migración local no carga noticias en un servidor.
 
 ## Errores y puesta en marcha
 

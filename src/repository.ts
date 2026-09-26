@@ -3,13 +3,12 @@ import type {
   NewsArticle,
   NewsInput,
   Session,
-  Role,
+  Credentials,
   Material,
   MaterialInput,
   Tournament,
   TournamentInput,
 } from "./types";
-import { roleNames } from "./types";
 import { news as pressNews } from "./data";
 import { readNewsImage, validateNews } from "./newsValidation";
 
@@ -49,6 +48,12 @@ export function validateMaterial(input: MaterialInput) {
     throw new Error("Indica un título y un tema.");
   if (!["iniciacion", "avanzado"].includes(input.course))
     throw new Error("Selecciona un nivel válido.");
+  if (!["syllabus", "exercises", "resources"].includes(input.section))
+    throw new Error("Selecciona una sección válida.");
+  if (input.section === "exercises" && !input.block.trim())
+    throw new Error("Indica un bloque para los ejercicios.");
+  if (input.block.length > 80)
+    throw new Error("El bloque no puede superar los 80 caracteres.");
   if (input.title.length > 160 || input.topic.length > 80)
     throw new Error("El título o el tema es demasiado largo.");
 }
@@ -141,151 +146,68 @@ async function read<T>(store: string, id?: string): Promise<T> {
       reject(new Error("No se pudieron leer los datos guardados."));
   });
 }
-async function write(stores: string[], action: (tx: IDBTransaction) => void) {
-  const database = await db();
-  return new Promise<void>((resolve, reject) => {
-    const tx = database.transaction(stores, "readwrite");
-    tx.oncomplete = () => resolve();
-    tx.onerror = tx.onabort = () =>
-      reject(
-        new Error(
-          "No se pudo guardar. Comprueba el espacio disponible y los permisos del navegador.",
-        ),
-      );
-    action(tx);
-  });
+// Old local materials remain available as syllabus; no stored role is trusted.
+function normalizeMaterial(material: Material): Material {
+  return {
+    ...material,
+    section: material.section ?? "syllabus",
+    block: material.block ?? "",
+  };
 }
-
-// This repository is a local preview, not an authentication or security boundary.
+function validatedSession(value: Session | null): Session | null {
+  if (value === null) return null;
+  if (
+    !value ||
+    !["student", "teacher", "admin"].includes(value.role) ||
+    typeof value.name !== "string"
+  )
+    throw new Error("El servicio ha devuelto una sesión no válida.");
+  return { role: value.role, name: value.name };
+}
 class DemoRepository implements Repository {
   readonly mode = "demo" as const;
   async session(): Promise<Session | null> {
-    try {
-      const session = JSON.parse(
-        sessionStorage.getItem("palentino-session") ?? "null",
-      );
-      return session && ["student", "teacher", "admin"].includes(session.role)
-        ? session
-        : null;
-    } catch {
-      return null;
-    }
+    sessionStorage.removeItem("palentino-session");
+    return sessionStorage.getItem("palentino-student-preview") === "1"
+      ? { role: "student", name: "Vista previa" }
+      : null;
   }
-  async login(role: Role, password: string) {
-    if (
-      !["student", "teacher", "admin"].includes(role) ||
-      password !== "palentino"
-    )
-      throw new Error("La contraseña de demostración es palentino.");
-    const session = { role, name: roleNames[role] };
-    sessionStorage.setItem("palentino-session", JSON.stringify(session));
-    return session;
+  async login(_credentials: Credentials): Promise<Session> {
+    throw new Error("El acceso con cuenta aún no está disponible. Contacta con el club.");
+  }
+  async previewStudent(): Promise<Session> {
+    sessionStorage.setItem("palentino-student-preview", "1");
+    return { role: "student", name: "Vista previa" };
   }
   async logout() {
     sessionStorage.removeItem("palentino-session");
+    sessionStorage.removeItem("palentino-student-preview");
   }
-  private async allow(roles: Role[]) {
-    const session = await this.session();
-    if (!session || !roles.includes(session.role))
-      throw new Error("Tu perfil no tiene permiso para realizar esta acción.");
+  private async requirePreview() {
+    if (!(await this.session()))
+      throw new Error("Abre la vista previa para consultar los materiales.");
+  }
+  private denyWrite(): never {
+    throw new Error("La vista previa no tiene permiso para modificar contenido. Accede con una cuenta cuando el servicio esté disponible.");
   }
   async materials() {
-    await this.allow(["student", "teacher", "admin"]);
-    return read<Material[]>("materials");
+    await this.requirePreview();
+    return (await read<Material[]>("materials")).map(normalizeMaterial);
   }
-  async saveMaterial(input: MaterialInput, file?: File, id?: string) {
-    await this.allow(["teacher", "admin"]);
-    validateMaterial(input);
-    if (file) validateFile(file);
-    const previous = id
-      ? await read<Material | undefined>("materials", id)
-      : undefined;
-    if (id && !previous)
-      throw new Error("El material ya no existe. Actualiza la lista.");
-    if (!file && !previous)
-      throw new Error("Selecciona el archivo que quieres subir.");
-    const material: Material = {
-      ...input,
-      title: input.title.trim(),
-      topic: input.topic.trim(),
-      id: id ?? crypto.randomUUID(),
-      filename: file?.name ?? previous!.filename,
-      size: file?.size ?? previous!.size,
-      updatedAt: new Date().toISOString(),
-    };
-    await write(["materials", "files"], (tx) => {
-      tx.objectStore("materials").put(material);
-      if (file) tx.objectStore("files").put(file, material.id);
-    });
-  }
-  async deleteMaterial(id: string) {
-    await this.allow(["teacher", "admin"]);
-    await write(["materials", "files"], (tx) => {
-      tx.objectStore("materials").delete(id);
-      tx.objectStore("files").delete(id);
-    });
-  }
+  async saveMaterial(_input: MaterialInput, _file?: File, _id?: string) { this.denyWrite(); }
+  async deleteMaterial(_id: string) { this.denyWrite(); }
   async download(id: string) {
-    await this.allow(["student", "teacher", "admin"]);
+    await this.requirePreview();
     const blob = await read<Blob | undefined>("files", id);
-    if (!blob)
-      throw new Error(
-        "No se encuentra el archivo. Pide al profesor que vuelva a subirlo.",
-      );
+    if (!blob) throw new Error("No se encuentra el archivo. Pide al profesor que vuelva a subirlo.");
     return blob;
   }
-  async tournaments() {
-    return read<Tournament[]>("tournaments");
-  }
-  async saveTournament(input: TournamentInput, id?: string) {
-    await this.allow(["admin"]);
-    validateTournament(input);
-    await write(["tournaments"], (tx) =>
-      tx.objectStore("tournaments").put({
-        ...input,
-        title: input.title.trim(),
-        location: input.location.trim(),
-        id: id ?? crypto.randomUUID(),
-      }),
-    );
-  }
-  async deleteTournament(id: string) {
-    await this.allow(["admin"]);
-    await write(["tournaments"], (tx) =>
-      tx.objectStore("tournaments").delete(id),
-    );
-  }
-  async news() {
-    return read<NewsArticle[]>("news");
-  }
-  async saveNews(input: NewsInput, image?: File, id?: string) {
-    await this.allow(["admin"]);
-    validateNews(input);
-    const previous = id
-      ? await read<NewsArticle | undefined>("news", id)
-      : undefined;
-    if (id && !previous)
-      throw new Error("La noticia ya no existe. Actualiza la lista.");
-    const imageUrl = image
-      ? await readNewsImage(image)
-      : (previous?.imageUrl ?? "");
-    if (imageUrl && !input.imageAlt.trim())
-      throw new Error("Describe brevemente la foto.");
-    const article: NewsArticle = {
-      ...input,
-      title: input.title.trim(),
-      summary: input.summary.trim(),
-      content: input.content.trim(),
-      imageUrl,
-      id: id ?? crypto.randomUUID(),
-      updatedAt: new Date().toISOString(),
-    };
-    await write(["news"], (tx) => tx.objectStore("news").put(article));
-  }
-  async deleteNews(id: string) {
-    await this.allow(["admin"]);
-    await write(["news"], (tx) => tx.objectStore("news").delete(id));
-  }
+  async tournaments() { return read<Tournament[]>("tournaments"); }
+  async saveTournament(_input: TournamentInput, _id?: string) { this.denyWrite(); }
+  async deleteTournament(_id: string) { this.denyWrite(); }
+  async news() { return read<NewsArticle[]>("news"); }
+  async saveNews(_input: NewsInput, _image?: File, _id?: string) { this.denyWrite(); }
+  async deleteNews(_id: string) { this.denyWrite(); }
 }
 
 class RemoteRepository implements Repository {
@@ -311,26 +233,36 @@ class RemoteRepository implements Repository {
     return response.status === 204 ? (undefined as T) : response.json();
   }
   async session() {
-    return this.request<Session | null>("/session");
+    return validatedSession(await this.request<Session | null>("/session"));
   }
-  async login(role: Role, password: string, email?: string) {
-    return this.request<Session>("/session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role, password, email }),
-    });
+  async login({ email, password }: Credentials) {
+    const session = validatedSession(
+      await this.request<Session>("/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      }),
+    );
+    if (!session) throw new Error("No se ha podido iniciar sesión.");
+    return session;
   }
   async logout() {
     await this.request("/session", { method: "DELETE" });
   }
   async materials() {
-    return this.request<Material[]>("/materials");
+    return (await this.request<Material[]>("/materials")).map(normalizeMaterial);
   }
   async saveMaterial(input: MaterialInput, file?: File, id?: string) {
     validateMaterial(input);
     if (file) validateFile(file);
     const form = new FormData();
-    Object.entries(input).forEach(([key, value]) => form.set(key, value));
+    Object.entries({
+      course: input.course,
+      section: input.section,
+      title: input.title.trim(),
+      topic: input.topic.trim(),
+      block: input.section === "exercises" ? input.block.trim() : "",
+    }).forEach(([key, value]) => form.set(key, value));
     if (file) form.set("file", file);
     await this.request(`/materials${id ? `/${encodeURIComponent(id)}` : ""}`, {
       method: id ? "PATCH" : "POST",

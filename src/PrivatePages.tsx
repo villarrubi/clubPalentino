@@ -13,7 +13,8 @@ import {
   FilePpt,
   FileText,
   GraduationCap,
-  Horse as Chess,
+  Strategy,
+  PuzzlePiece,
   SignOut,
 } from "@phosphor-icons/react";
 import {
@@ -25,12 +26,17 @@ import {
   LinkButton,
 } from "./components";
 import { useClub } from "./context";
-import { courseNames, type Course, type Material, type Role } from "./types";
+import {
+  courseNames,
+  sectionNames,
+  type Course,
+  type Material,
+  type MaterialSection,
+} from "./types";
 import { fileSize } from "./data";
 
 export function Login({ destination = "/aula" }: { destination?: string }) {
-  const { login, repository, session } = useClub();
-  const [role, setRole] = useState<Role>("student");
+  const { login, previewStudent, repository, session } = useClub();
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [show, setShow] = useState(false);
@@ -41,9 +47,11 @@ export function Login({ destination = "/aula" }: { destination?: string }) {
     setError("");
     setBusy(true);
     try {
-      await login(role, password, email);
+      const authenticated = repository.mode === "demo"
+        ? await previewStudent()
+        : await login({ email, password });
       location.hash =
-        role === "student"
+        authenticated.role === "student"
           ? destination === "/panel"
             ? "/aula"
             : destination
@@ -61,7 +69,7 @@ export function Login({ destination = "/aula" }: { destination?: string }) {
           eyebrow="TU ESPACIO EN EL CLUB"
           title="Ya has iniciado sesión."
         />
-        <LinkButton href="#/aula">Ir a las clases</LinkButton>
+        <LinkButton href={session.role === "student" ? "#/aula" : "#/panel"}>Ir a mi espacio</LinkButton>
       </div>
     );
   return (
@@ -85,7 +93,7 @@ export function Login({ destination = "/aula" }: { destination?: string }) {
             <span>
               Documentos y presentaciones
               <br />
-              <strong>Organizados por temas</strong>
+              <strong>Temario, ejercicios y recursos</strong>
             </span>
           </div>
         </div>
@@ -95,43 +103,15 @@ export function Login({ destination = "/aula" }: { destination?: string }) {
           </span>
           <h2>Bienvenido al club</h2>
           <p>Entra a tu espacio de clases.</p>
-          <div className="segmented login-roles" aria-label="Tipo de acceso">
-            {(
-              [
-                ["student", "Alumnado"],
-                ["teacher", "Profesor"],
-                ["admin", "Admin"],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                aria-pressed={role === value}
-                className={role === value ? "selected" : ""}
-                onClick={() => {
-                  setRole(value);
-                  setError("");
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
           <form onSubmit={submit}>
-            {role !== "student" && repository.mode === "remote" && (
+            {repository.mode === "remote" && <>
               <label>
                 Correo electrónico
-                <input
-                  required
-                  type="email"
-                  name="email"
-                  autoComplete="username"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                />
+                <input required type="email" name="email" autoComplete="username"
+                  value={email} onChange={(event) => setEmail(event.target.value)} />
               </label>
-            )}
             <label htmlFor="access-password">
-              {role === "student" ? "Contraseña de las clases" : "Contraseña"}
+              Contraseña
             </label>
             <div className="password-field">
               <input
@@ -154,20 +134,15 @@ export function Login({ destination = "/aula" }: { destination?: string }) {
               </button>
             </div>
             <p className="field-help" id="password-help">
-              {repository.mode === "demo" ? (
-                <>
-                  Para probar cualquier perfil, utiliza{" "}
-                  <strong>palentino</strong>.
-                </>
-              ) : role === "student" ? (
-                "Utiliza la contraseña que te ha facilitado el club."
-              ) : (
-                "Accede con tu cuenta del club."
-              )}
+              Utiliza las credenciales que te ha facilitado el club.
             </p>
+            </>}
+            {repository.mode === "demo" && <p className="field-help">
+              El acceso con cuenta aún no está disponible. Puedes explorar el aula en una vista previa de solo lectura.
+            </p>}
             <ErrorMessage>{error}</ErrorMessage>
             <button className="button full-width" disabled={busy} type="submit">
-              {busy ? "Accediendo…" : "Entrar"}
+              {busy ? "Accediendo…" : repository.mode === "demo" ? "Explorar el aula" : "Entrar"}
               <ArrowRight aria-hidden="true" />
             </button>
           </form>
@@ -204,11 +179,12 @@ export function Campus({ course }: { course?: Course }) {
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [topic, setTopic] = useState("all");
+  const [section, setSection] = useState<MaterialSection>("syllabus");
   const [downloading, setDownloading] = useState<string | null>(null);
   useEffect(() => {
     setQuery("");
     setTopic("all");
-  }, [course]);
+  }, [course, section]);
   useEffect(() => {
     let active = true;
     repository
@@ -247,13 +223,15 @@ export function Campus({ course }: { course?: Course }) {
   const courseFiles = materials.filter(
     (material) => material.course === course,
   );
+  const sectionFiles = courseFiles.filter((material) => material.section === section);
+  const group = (material: Material) => section === "exercises" ? material.block || "Sin bloque" : material.topic;
   const topics = [
-    ...new Set(courseFiles.map((material) => material.topic)),
-  ].sort((a, b) => a.localeCompare(b, "es"));
-  const results = courseFiles.filter(
+    ...new Set(sectionFiles.map(group)),
+  ].sort((a, b) => a.localeCompare(b, "es", { numeric: true }));
+  const results = sectionFiles.filter(
     (material) =>
-      (topic === "all" || material.topic === topic) &&
-      `${material.title} ${material.topic} ${material.filename}`
+      (topic === "all" || group(material) === topic) &&
+      `${material.title} ${material.topic} ${material.block} ${material.filename}`
         .toLocaleLowerCase("es")
         .includes(query.toLocaleLowerCase("es")),
   );
@@ -265,7 +243,7 @@ export function Campus({ course }: { course?: Course }) {
           {course ? "Todas las clases" : "Información de las clases"}
         </a>
         <div className="area-actions">
-          {session?.role !== "student" && (
+          {(session?.role === "teacher" || session?.role === "admin") && (
             <a className="text-link" href="#/panel">
               Panel de gestión <ArrowRight aria-hidden="true" />
             </a>
@@ -288,7 +266,7 @@ export function Campus({ course }: { course?: Course }) {
       >
         <p>
           {course
-            ? "Encuentra tus documentos y presentaciones, organizados por temas."
+            ? "Repasa el temario, practica por bloques y consulta los recursos de tus clases."
             : "Elige un nivel y sigue aprendiendo. Tienes acceso a todos los materiales del club."}
         </p>
       </Intro>
@@ -306,9 +284,9 @@ export function Campus({ course }: { course?: Course }) {
               key={level}
             >
               <div className="course-icon">
-                <Chess weight={level === "avanzado" ? "fill" : "regular"} />
+                {level === "iniciacion" ? <BookOpen weight="duotone" aria-hidden="true" /> : <Strategy weight="duotone" aria-hidden="true" />}
               </div>
-              <p className="eyebrow">CLASES</p>
+              <p className="eyebrow">{level === "iniciacion" ? "LOS PRIMEROS PASOS" : "TÁCTICA Y ESTRATEGIA"}</p>
               <h2>{courseNames[level]}</h2>
               <p>
                 {level === "iniciacion"
@@ -321,7 +299,7 @@ export function Campus({ course }: { course?: Course }) {
                   materiales
                 </span>
                 <span className="text-link">
-                  Ver temas <ArrowRight aria-hidden="true" />
+                  Entrar al aula <ArrowRight aria-hidden="true" />
                 </span>
               </div>
             </a>
@@ -343,68 +321,80 @@ export function Campus({ course }: { course?: Course }) {
               Avanzado
             </a>
           </nav>
+          <div className="learning-sections" role="group" aria-label="Contenido del aula">
+            {(["syllabus", "exercises", "resources"] as const).map((value) => {
+              const Icon = value === "syllabus" ? BookOpen : value === "exercises" ? PuzzlePiece : Folder;
+              return <button key={value} aria-pressed={section === value}
+                className={section === value ? "selected" : ""}
+                onClick={() => { setSection(value); setQuery(""); setTopic("all"); }}>
+                <Icon size={28} aria-hidden="true" />
+                <span><strong>{sectionNames[value]}</strong><small>{value === "syllabus" ? "Aprende paso a paso" : value === "exercises" ? "Practica por bloques" : "Amplía tus clases"}</small></span>
+                <span className="section-count">{courseFiles.filter((m) => m.section === value).length}</span>
+              </button>;
+            })}
+          </div>
+          <h2 className="library-heading">{sectionNames[section]}</h2>
           <div className="library-toolbar">
             <label className="search-field">
               <span className="sr-only">Buscar materiales</span>
               <MagnifyingGlass aria-hidden="true" />
               <input
                 type="search"
-                placeholder="Buscar un material o un tema…"
+                placeholder={section === "exercises" ? "Buscar un ejercicio o bloque…" : "Buscar un material o un tema…"}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
               />
             </label>
             <label className="topic-filter">
-              <span className="sr-only">Filtrar por tema</span>
+              <span className="sr-only">{section === "exercises" ? "Filtrar por bloque" : "Filtrar por tema"}</span>
               <select
                 value={topic}
                 onChange={(event) => setTopic(event.target.value)}
               >
-                <option value="all">Todos los temas</option>
+                <option value="all">{section === "exercises" ? "Todos los bloques" : "Todos los temas"}</option>
                 {topics.map((topic) => (
                   <option key={topic}>{topic}</option>
                 ))}
               </select>
             </label>
           </div>
-          {!courseFiles.length ? (
+          {!sectionFiles.length ? (
             <Empty
               icon={<Folder size={32} />}
-              title="Tus próximos materiales, aquí"
+              title={section === "exercises" ? "Tus próximos ejercicios, aquí" : section === "resources" ? "Tus próximos recursos, aquí" : "Tu próximo temario, aquí"}
             >
-              El profesor publicará los documentos de este nivel, agrupados por
-              temas. Vuelve pronto para descubrirlos.
+              {section === "exercises" ? "El profesor publicará ejercicios agrupados por bloques para practicar a tu ritmo." : "El profesor publicará los materiales de esta sección, organizados por temas."}
             </Empty>
           ) : !results.length ? (
             <Empty
               icon={<MagnifyingGlass size={32} />}
               title="No encontramos ese material"
             >
-              Prueba con otra palabra o selecciona todos los temas.
+              Prueba con otra palabra o cambia el filtro.
             </Empty>
           ) : (
             <div className="topic-groups">
               {topics
-                .filter((topic) => results.some((m) => m.topic === topic))
+                .filter((topic) => results.some((m) => group(m) === topic))
                 .map((topic) => (
                   <section className="topic-group" key={topic}>
                     <h2>
                       <Folder size={24} aria-hidden="true" />
                       {topic}
                       <span>
-                        {results.filter((m) => m.topic === topic).length}
+                        {results.filter((m) => group(m) === topic).length}
                       </span>
                     </h2>
                     <div className="material-list">
                       {results
-                        .filter((m) => m.topic === topic)
+                        .filter((m) => group(m) === topic)
                         .map((material) => (
                           <article className="material-row" key={material.id}>
                             <FileIcon filename={material.filename} />
                             <div className="material-description">
                               <h3>{material.title}</h3>
                               <p>
-                                {material.filename}{" "}
+                                {section === "exercises" && <>{material.topic} · </>}{material.filename}{" "}
                                 <span>· {fileSize(material.size)}</span>
                               </p>
                             </div>

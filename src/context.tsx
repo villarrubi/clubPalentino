@@ -5,13 +5,14 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { Repository, Session, Role } from "./types";
+import type { Repository, Session, Credentials } from "./types";
 
 type ClubContext = {
   repository: Repository;
   session: Session | null;
   ready: boolean;
-  login: (role: Role, password: string, email?: string) => Promise<void>;
+  login: (credentials: Credentials) => Promise<Session>;
+  previewStudent: () => Promise<Session>;
   logout: () => Promise<void>;
   notify: (message: string) => void;
 };
@@ -55,8 +56,16 @@ export function Provider({
         session,
         ready,
         notify: setMessage,
-        login: async (role, password, email) => {
-          setSession(await repository.login(role, password, email));
+        login: async (credentials) => {
+          const value = await repository.login(credentials);
+          setSession(value);
+          return value;
+        },
+        previewStudent: async () => {
+          if (!repository.previewStudent) throw new Error("La vista previa no está disponible.");
+          const value = await repository.previewStudent();
+          setSession(value);
+          return value;
         },
         logout: async () => {
           await repository.logout();

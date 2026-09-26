@@ -14,15 +14,15 @@ Web: https://villarrubi.github.io/clubPalentino/
 - Profesor: crear, editar, sustituir y eliminar archivos. Administrador: lo anterior y gestión de torneos y noticias con foto propia.
 - Tema claro y tema azul profundo, con preferencia de sistema y selector manual.
 
-## Probar el área de alumnos y el panel
+## Acceso y área de alumnos
 
-En `#/acceso`, selecciona Alumnado, Profesor o Admin. La contraseña de demostración para los tres perfiles es **palentino**.
+El acceso no permite elegir un rol. Con un servicio configurado, se introduce correo y contraseña; el servidor autentica la cuenta y devuelve sus permisos. Alumnos acceden al aula; profesores y administradores, al panel. El cliente no envía un rol en la petición de acceso ni acepta perfiles guardados en el navegador.
 
-Esta versión funciona en **modo de demostración local**. Los materiales, torneos, noticias y fotos se guardan en IndexedDB, solo en ese navegador y origen. Persisten al recargar, pero no se comparten entre dispositivos, usuarios o navegadores, y se pierden si se borran los datos del sitio. No hay seguimiento, tareas ni cuentas individuales de alumnos.
+Sin servicio, la web ofrece únicamente una **vista previa de alumno, de solo lectura**. No hay contraseñas públicas ni acceso de gestión en la demo. Las sesiones antiguas se descartan y todas las operaciones de escritura local están bloqueadas, incluso llamando directamente al repositorio. Esto no convierte IndexedDB en almacenamiento privado: conserva solo los materiales de prueba de ese navegador; no se comparten entre dispositivos y se pierden al borrar los datos del sitio.
 
-Los permisos de la demo sirven para probar las pantallas: **no constituyen autenticación ni protección real**. La contraseña es pública y el selector de perfil permite probar cualquiera de los roles. No utilizar materiales confidenciales. Las pruebas automáticas usan contextos aislados y no añaden contenido a la web publicada.
+Cada nivel tiene tres zonas: **Temario**, **Ejercicios** y **Recursos**. El temario y los recursos se agrupan por tema; los ejercicios, por bloques con nombre. El panel permite elegir sección, crear o reutilizar un bloque y reasignar materiales al editarlos. Los materiales anteriores sin sección aparecen en Temario. No hay tareas, notas ni seguimiento individual.
 
-Formatos admitidos: PDF, PPT, PPTX, DOC, DOCX, ODT, ODP, PGN, ZIP y TXT; máximo 25 MB por archivo. Se pueden modificar título, nivel y tema sin sustituir el archivo.
+Formatos admitidos: PDF, PPT, PPTX, DOC, DOCX, ODT, ODP, PGN, ZIP y TXT; máximo 25 MB por archivo. Se pueden modificar título, nivel, sección, tema y bloque sin sustituir el archivo.
 
 ## Desarrollo
 
@@ -42,7 +42,7 @@ npx playwright install chromium
 npm test
 ```
 
-Playwright comprueba escritorio y móvil: navegación, enlaces profundos, contenido del curso, contacto, ambos niveles, permisos de la demo, persistencia, subida, edición, descarga y borrado de materiales, gestión de torneos, archivos rechazados, configuración fallida, tema oscuro y desbordamientos entre 320 y 1440 px. Incluye análisis automatizado de accesibilidad con axe; no sustituye una auditoría manual completa ni una prueba en todos los dispositivos físicos.
+Playwright comprueba escritorio y móvil: navegación, enlaces profundos, contenido del curso, contacto, ambos niveles, bloqueo de escrituras en la vista previa, credenciales sin selector de rol, secciones y bloques, subida, edición, descarga y borrado de materiales, gestión de torneos, archivos rechazados, configuración fallida, tema oscuro y desbordamientos entre 320 y 1440 px. Los flujos de gestión usan una API simulada exclusivamente en las pruebas, sin cuentas ni credenciales de prueba en la aplicación. No sustituyen las pruebas de autorización del futuro servidor. Incluye análisis automatizado de accesibilidad con axe; no sustituye una auditoría manual completa ni una prueba en todos los dispositivos físicos.
 
 ## Publicación
 
@@ -50,7 +50,7 @@ Cada push a `main` ejecuta `.github/workflows/deploy.yml`: instala dependencias,
 
 ## Conectar el servicio definitivo
 
-`public/config.json` contiene `apiBaseUrl`. Vacío activa explícitamente la demo. Cuando exista un servicio compatible, indica su URL HTTPS; por ejemplo:
+`public/config.json` contiene `apiBaseUrl`. Vacío activa la vista previa de solo lectura. Cuando exista un servicio compatible, indica su URL HTTPS; por ejemplo:
 
 ```json
 { "apiBaseUrl": "https://api.tu-dominio.es" }
@@ -58,7 +58,7 @@ Cada push a `main` ejecuta `.github/workflows/deploy.yml`: instala dependencias,
 
 Una carpeta o URL de almacenamiento por sí sola no basta: hay que implementar autenticación, autorización y almacenamiento en un servidor. El cliente remoto ya está preparado. El contrato y los requisitos están en [docs/API.md](docs/API.md). Si falla un servicio configurado, la aplicación no se cambia silenciosamente a la demo.
 
-La autenticación futura prevista es contraseña común para alumnos y cuentas individuales de profesor/administrador, con roles decididos en el servidor. Los materiales deben permanecer fuera de este repositorio y de las carpetas públicas de GitHub Pages. Los datos de demostración no se migran automáticamente.
+La autenticación prevista utiliza cuentas con correo y contraseña para alumnos, profesores y administradores, con roles decididos y comprobados en el servidor. Los materiales deben permanecer fuera de este repositorio y de las carpetas públicas de GitHub Pages. Los datos de demostración no se migran automáticamente.
 
 ## Editar información pública
 

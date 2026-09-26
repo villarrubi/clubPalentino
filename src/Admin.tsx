@@ -24,6 +24,8 @@ import { FileIcon } from "./PrivatePages";
 import {
   courseNames,
   roleNames,
+  sectionNames,
+  type MaterialSection,
   type NewsArticle,
   type Material,
   type MaterialInput,
@@ -37,17 +39,21 @@ import { NewsForm } from "./NewsForm";
 
 function MaterialForm({
   material,
-  topics,
+  materials,
   done,
 }: {
   material?: Material;
-  topics: string[];
+  materials: Material[];
   done: () => void;
 }) {
   const { repository, notify } = useClub();
   const [data, setData] = useState<MaterialInput>(
-    material ?? { title: "", topic: "", course: "iniciacion" },
+    material ?? { title: "", topic: "", course: "iniciacion", section: "syllabus", block: "" },
   );
+  const related = materials.filter((m) => m.course === data.course && m.section === data.section);
+  const topics = [...new Set(related.map((m) => m.topic))];
+  const blocks = [...new Set(related.map((m) => m.block).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, "es", { numeric: true }));
   const [file, setFile] = useState<File>();
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -100,6 +106,23 @@ function MaterialForm({
           autoFocus
         />
       </label>
+      <label>
+        Sección
+        <select value={data.section} onChange={(event) => setData({ ...data, section: event.target.value as MaterialSection })}>
+          <option value="syllabus">Temario</option>
+          <option value="exercises">Ejercicios</option>
+          <option value="resources">Recursos</option>
+        </select>
+      </label>
+      {data.section === "exercises" && <><label>
+        Bloque de ejercicios
+        <input required maxLength={80} list="existing-blocks" value={data.block} aria-describedby="block-help"
+          placeholder="Ej.: Bloque 1 · Jaque mate"
+          onChange={(event) => setData({ ...data, block: event.target.value })} />
+        <datalist id="existing-blocks">{blocks.map((block) => <option key={block} value={block} />)}</datalist>
+      </label>
+        <p className="field-help" id="block-help">Crea un bloque o elige uno existente para reunir sus ejercicios.</p>
+      </>}
       <div className="form-columns">
         <label>
           Nivel
@@ -395,7 +418,7 @@ export function Admin() {
   const filtered = materials.filter(
     (m) =>
       (course === "all" || m.course === course) &&
-      `${m.title} ${m.topic}`
+      `${m.title} ${m.topic} ${m.block} ${sectionNames[m.section]}`
         .toLocaleLowerCase("es")
         .includes(query.toLocaleLowerCase("es")),
   );
@@ -526,7 +549,8 @@ export function Admin() {
                   <div className="material-description">
                     <h3>{material.title}</h3>
                     <p>
-                      {courseNames[material.course]} · {material.topic}
+                      {courseNames[material.course]} · {sectionNames[material.section]} · {material.topic}
+                      {material.section === "exercises" && <> · {material.block || "Sin bloque"}</>}
                     </p>
                     <small>
                       {material.filename} ({fileSize(material.size)})
@@ -699,7 +723,7 @@ export function Admin() {
           {editor.type === "material" ? (
             <MaterialForm
               material={editor.item}
-              topics={[...new Set(materials.map((m) => m.topic))]}
+              materials={materials}
               done={done}
             />
           ) : editor.type === "news" ? (

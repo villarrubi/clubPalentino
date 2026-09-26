@@ -1,5 +1,15 @@
 export type Role = "student" | "teacher" | "admin";
 export type Course = "iniciacion" | "avanzado";
+export type MaterialSection = "syllabus" | "exercises" | "resources";
+export const sectionNames: Record<MaterialSection, string> = {
+  syllabus: "Temario",
+  exercises: "Ejercicios",
+  resources: "Recursos",
+};
+export interface Credentials {
+  email: string;
+  password: string;
+}
 export interface Session {
   role: Role;
   name: string;
@@ -9,6 +19,8 @@ export interface Material {
   title: string;
   topic: string;
   course: Course;
+  section: MaterialSection;
+  block: string;
   filename: string;
   size: number;
   updatedAt: string;
@@ -17,6 +29,8 @@ export interface MaterialInput {
   title: string;
   topic: string;
   course: Course;
+  section: MaterialSection;
+  block: string;
 }
 export interface Tournament {
   id: string;
@@ -45,7 +59,8 @@ export interface NewsArticle extends NewsInput {
 export interface Repository {
   mode: "demo" | "remote";
   session(): Promise<Session | null>;
-  login(role: Role, password: string, email?: string): Promise<Session>;
+  login(credentials: Credentials): Promise<Session>;
+  previewStudent?(): Promise<Session>;
   logout(): Promise<void>;
   materials(): Promise<Material[]>;
   saveMaterial(input: MaterialInput, file?: File, id?: string): Promise<void>;
