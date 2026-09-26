@@ -1,0 +1,9 @@
+Chess nlt45.svg — Cburnett (2006).
+Fuente: https://commons.wikimedia.org/wiki/File:Chess_nlt45.svg
+Archivo: https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg
+Licencia elegida: Creative Commons Attribution-ShareAlike 3.0 Unported.
+https://creativecommons.org/licenses/by-sa/3.0/
+
+Se distribuye una copia sin modificaciones de la versión de Wikimedia Commons
+(revisión del 13 de diciembre de 2021). Historial de ajustes: Antonsusi y Apathor.
+La composición de portada y su animación se realizan por separado en CSS.

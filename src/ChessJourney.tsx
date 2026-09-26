@@ -84,7 +84,7 @@ export function HomeHero() {
           </div>
         </div>
         <div className="hero-scene" aria-hidden="true">
-          <span className="hero-scene-word">Tu jugada.</span>
+          <span className="hero-scene-word">Fuerza y honor</span>
           <m.div
             className="hero-board-plane"
             style={{

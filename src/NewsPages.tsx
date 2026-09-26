@@ -55,6 +55,7 @@ export function NewsList({ short = false }: { short?: boolean }) {
         <article
           className={`news-feature ${!article.imageUrl ? "news-text-only" : ""}`}
           key={article.id}
+          data-reveal
         >
           {article.imageUrl && (
             <a
@@ -100,7 +101,7 @@ export function NewsDetail({ id }: { id: string }) {
       document.title = `${article.title} | Club Palentino de Ajedrez`;
   }, [article]);
   return (
-    <div className="container inner-page news-detail">
+    <div className="container inner-page public-page news-detail">
       <a className="text-link news-back" href="#/noticias">
         Volver a noticias
       </a>

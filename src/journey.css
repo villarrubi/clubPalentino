@@ -45,12 +45,13 @@
   top: 8px;
   right: 0;
   color: var(--text);
-  opacity: 0.075;
+  opacity: 0.6;
   font-family: Georgia, serif;
   font-style: italic;
-  font-size: clamp(4rem, 7vw, 7.5rem);
-  letter-spacing: -0.07em;
+  font-size: clamp(2.5rem, 4.6vw, 4.7rem);
+  letter-spacing: -0.055em;
   white-space: nowrap;
+  padding-inline: 0.12em;
 }
 .hero-board-plane {
   position: absolute;
@@ -75,9 +76,9 @@
 .hero-piece {
   position: absolute;
   width: 83%;
-  height: 500px;
+  height: 440px;
   left: 9%;
-  bottom: 86px;
+  bottom: 105px;
   filter: none;
 }
 .hero-piece-entrance,
@@ -360,8 +361,8 @@
     height: 535px;
   }
   .hero-piece {
-    height: 450px;
-    bottom: 73px;
+    height: 380px;
+    bottom: 92px;
   }
   .hero-board-plane {
     bottom: 60px;
@@ -416,13 +417,13 @@
     margin-top: 10px;
   }
   .hero-piece {
-    height: 365px;
-    bottom: 65px;
+    height: 300px;
+    bottom: 75px;
     width: 88%;
     left: 6%;
   }
   .hero-scene-word {
-    font-size: clamp(3.7rem, 18vw, 4.9rem);
+    font-size: clamp(2.1rem, 10.1vw, 3.9rem);
     top: 3px;
     right: 6px;
   }

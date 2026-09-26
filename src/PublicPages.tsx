@@ -62,7 +62,7 @@ function TournamentList({ short = false }: { short?: boolean }) {
   return (
     <>
       {!short && (
-        <div className="segmented" aria-label="Filtrar torneos">
+        <div className="segmented" aria-label="Filtrar torneos" data-reveal>
           <button
             className={filter === "upcoming" ? "selected" : ""}
             aria-pressed={filter === "upcoming"}
@@ -79,30 +79,36 @@ function TournamentList({ short = false }: { short?: boolean }) {
           </button>
         </div>
       )}
-      {loading ? (
-        <Loading />
-      ) : error ? (
-        <ErrorMessage>{error}</ErrorMessage>
-      ) : filtered.length ? (
-        <div className="tournament-list">
-          {(short ? filtered.slice(0, 2) : filtered).map((t) => (
-            <TournamentCard tournament={t} key={t.id} />
-          ))}
-        </div>
-      ) : (
-        <Empty
-          icon={<CalendarBlank size={32} />}
-          title={
-            filter === "upcoming"
-              ? "Preparando la próxima jugada"
-              : "Todavía no hay torneos anteriores"
-          }
-        >
-          {filter === "upcoming"
-            ? "Publicaremos aquí las fechas, los detalles y la información para participar en los próximos torneos."
-            : "Los torneos publicados aparecerán aquí una vez celebrados."}
-        </Empty>
-      )}
+      <div
+        className="tournament-results"
+        data-reveal={short ? undefined : ""}
+        key={`${filter}-${loading}`}
+      >
+        {loading ? (
+          <Loading />
+        ) : error ? (
+          <ErrorMessage>{error}</ErrorMessage>
+        ) : filtered.length ? (
+          <div className="tournament-list">
+            {(short ? filtered.slice(0, 2) : filtered).map((t) => (
+              <TournamentCard tournament={t} key={t.id} />
+            ))}
+          </div>
+        ) : (
+          <Empty
+            icon={<CalendarBlank size={32} />}
+            title={
+              filter === "upcoming"
+                ? "Preparando la próxima jugada"
+                : "Todavía no hay torneos anteriores"
+            }
+          >
+            {filter === "upcoming"
+              ? "Publicaremos aquí las fechas, los detalles y la información para participar en los próximos torneos."
+              : "Los torneos publicados aparecerán aquí una vez celebrados."}
+          </Empty>
+        )}
+      </div>
     </>
   );
 }
@@ -152,7 +158,7 @@ export function Home() {
 }
 export function Tournaments() {
   return (
-    <div className="container inner-page">
+    <div className="container inner-page public-page">
       <Intro eyebrow="ENCUENTROS SOBRE EL TABLERO" title="Próximos torneos.">
         <p>
           El calendario del club, con toda la información para preparar tu
@@ -165,7 +171,7 @@ export function Tournaments() {
 }
 export function News() {
   return (
-    <div className="container inner-page">
+    <div className="container inner-page public-page">
       <Intro eyebrow="ACTUALIDAD DEL CLUB" title="Lo que pasa entre jugadas.">
         <p>Noticias y encuentros del ajedrez palentino.</p>
       </Intro>
@@ -178,7 +184,7 @@ export function News() {
 }
 export function Classes() {
   return (
-    <div className="container inner-page">
+    <div className="container inner-page public-page">
       <Intro eyebrow={`CURSO ${school.season}`} title="Escuela Club Palentino">
         <p>
           Ajedrez para <strong>todas las edades y todos los niveles.</strong>{" "}
@@ -186,7 +192,7 @@ export function Classes() {
           descubrimiento con el club.
         </p>
       </Intro>
-      <div className="school-enrollment">
+      <div className="school-enrollment" data-reveal>
         <div>
           <CalendarBlank size={25} aria-hidden="true" />
           <span>
@@ -248,7 +254,7 @@ export function Classes() {
         nivel según su evolución y sus necesidades de aprendizaje.
       </p>
       <section className="class-details">
-        <div>
+        <div data-reveal="left">
           <p className="eyebrow">NOS VEMOS LOS VIERNES</p>
           <h2>
             Una hora para aprender.
@@ -336,7 +342,7 @@ export function Classes() {
 }
 export function Contact() {
   return (
-    <div className="container inner-page">
+    <div className="container inner-page public-page">
       <Intro
         eyebrow="CERCA, DENTRO Y FUERA DEL TABLERO"
         title="Hablemos de ajedrez."
@@ -347,7 +353,7 @@ export function Contact() {
         </p>
       </Intro>
       <div className="contact-layout">
-        <section className="contact-information">
+        <section className="contact-information" data-reveal="left">
           <h2>
             Club Palentino
             <br />
@@ -416,7 +422,7 @@ export function Contact() {
             preparado para que puedas revisarlo y enviarlo.
           </p>
         </section>
-        <aside className="contact-brand" data-reveal="image">
+        <aside className="contact-brand" data-reveal="right">
           <img
             src={asset("logo-palentino.jpg")}
             width="280"

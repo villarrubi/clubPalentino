@@ -1998,3 +1998,62 @@ html[data-motion="full"]
     transform: translateX(48px);
   }
 }
+
+/* Public pages enter with the same paced movement as the opening scene. */
+.illustration-credit {
+  color: var(--muted);
+  font-size: 0.65rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.public-page {
+  overflow: clip;
+}
+.public-page > .page-intro > *,
+.public-page > article > .page-intro > * {
+  animation: page-intro-arrive 1.15s cubic-bezier(0.22, 0.65, 0.25, 1) both;
+}
+.public-page .page-intro h1 {
+  animation-delay: 0.12s;
+}
+.public-page .page-intro .intro-copy {
+  animation-delay: 0.24s;
+}
+html[data-motion="full"] .public-page [data-reveal].reveal-initial {
+  animation: page-block-arrive 1.2s cubic-bezier(0.22, 0.65, 0.25, 1) both;
+  animation-delay: calc(0.25s + var(--reveal-delay, 0ms));
+}
+.public-page [data-reveal="left"] {
+  --entry-x: -48px;
+  --entry-y: 0px;
+}
+.public-page [data-reveal="right"] {
+  --entry-x: 48px;
+  --entry-y: 0px;
+}
+@keyframes page-intro-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes page-block-arrive {
+  from {
+    opacity: 0;
+    transform: translate(var(--entry-x, 0px), var(--entry-y, 28px));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media print {
+  .public-page *,
+  [data-reveal] {
+    animation: none !important;
+  }
+}

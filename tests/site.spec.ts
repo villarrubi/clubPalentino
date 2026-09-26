@@ -107,6 +107,18 @@ test("entradas laterales de los tres capítulos y enlaces accesibles", async ({
 }, testInfo) => {
   await page.goto("/");
   await expect(page.locator(".knight-illustration")).toHaveCount(1);
+  await expect(page.locator(".knight-illustration")).toHaveAttribute(
+    "src",
+    /caballo-clasico\.svg$/,
+  );
+  await expect
+    .poll(() =>
+      page
+        .locator(".knight-illustration")
+        .evaluate((image: HTMLImageElement) => image.naturalWidth),
+    )
+    .toBeGreaterThan(0);
+  await expect(page.locator(".hero-scene-word")).toHaveText("Fuerza y honor");
   await expect(page.locator('img[src*="caballo-staunton"]')).toHaveCount(0);
   const firstArt = page.locator('[data-chapter="0"] .chapter-art');
   const firstCopy = page.locator('[data-chapter="0"] .chapter-copy');
@@ -143,6 +155,92 @@ test("entradas laterales de los tres capítulos y enlaces accesibles", async ({
   await page.locator('[data-chapter="0"] .journey-link').click();
   await expect(page.locator("main h1")).toHaveText("Escuela Club Palentino");
   await expect(page.locator(".knight-illustration")).toHaveCount(0);
+});
+
+test("las cuatro páginas públicas animan su entrada al navegar", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/");
+  for (const [name, route, heading] of [
+    ["Escuela Club Palentino", "escuela", "Escuela Club Palentino"],
+    ["Próximos torneos", "torneos", "Próximos torneos."],
+    ["Noticias", "noticias", "Lo que pasa entre jugadas."],
+    ["Contacto", "contacto", "Hablemos de ajedrez."],
+  ]) {
+    await page
+      .getByRole("navigation", { name: "Enlaces del club" })
+      .getByRole("link", { name, exact: true })
+      .click();
+    await expect(page).toHaveURL(new RegExp(`#/${route}$`));
+    const title = page.locator(".public-page h1");
+    await expect(title).toHaveText(heading);
+    await expect(title).toHaveCSS("animation-name", "page-intro-arrive");
+    expect(
+      await title.evaluate((el) => Number(getComputedStyle(el).opacity)),
+    ).toBeLessThan(1);
+    await expect(title).toHaveCSS("opacity", "1");
+    const blocks = page.locator(".public-page [data-reveal]");
+    expect(await blocks.count()).toBeGreaterThan(0);
+    for (const block of await blocks.all()) {
+      await block.scrollIntoViewIfNeeded();
+      await expect(block).not.toHaveClass(/reveal-pending/);
+      await expect(block).toHaveCSS("opacity", "1");
+    }
+  }
+  await page.screenshot({
+    path: testInfo.outputPath("contacto-animado.png"),
+    fullPage: true,
+  });
+  await page.goBack();
+  await expect(page.locator(".public-page h1")).toHaveText(
+    "Lo que pasa entre jugadas.",
+  );
+  await expect(page.locator(".public-page h1")).toHaveCSS(
+    "animation-name",
+    "page-intro-arrive",
+  );
+});
+
+test("las noticias que llegan después de la carga también se animan", async ({
+  page,
+}) => {
+  let release!: () => void;
+  const responseReady = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/config.json", (route) =>
+    route.fulfill({ json: { apiBaseUrl: "http://127.0.0.1:4173/api" } }),
+  );
+  await page.route("**/api/session", (route) => route.fulfill({ json: null }));
+  await page.route("**/api/news", async (route) => {
+    await responseReady;
+    await route.fulfill({
+      json: Array.from({ length: 5 }, (_, i) => ({
+        id: String(i),
+        title: `Noticia ${i}`,
+        date: "2026-09-27",
+        summary: "Actualidad del club",
+        content: "Texto de la noticia",
+        imageUrl: "",
+        imageAlt: "",
+        source: "",
+        url: "",
+        updatedAt: "2026-09-27T12:00:00Z",
+      })),
+    });
+  });
+  await page.goto("/#/noticias");
+  await expect(page.locator("main h1")).toHaveCSS("opacity", "1");
+  release();
+  const first = page.locator(".news-feature").first();
+  await expect(first).toHaveClass(/reveal-initial/);
+  const last = page.locator(".news-feature").last();
+  await expect(last).toHaveClass(/reveal-pending/);
+  await last.scrollIntoViewIfNeeded();
+  await expect(last).toHaveCSS("opacity", "1");
+  await expect(last).not.toHaveClass(/reveal-pending/);
+  await first.getByRole("link", { name: "Leer noticia" }).focus();
+  await expect(first).toHaveCSS("opacity", "1");
 });
 
 test("apertura pausada y una sola animación sin selector ni preferencias guardadas", async ({
