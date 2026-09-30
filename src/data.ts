@@ -13,6 +13,8 @@ export const contact = {
   email: "clubpalentinoajedrez@gmail.com",
   emailLink: `mailto:clubpalentinoajedrez@gmail.com?subject=${encodeURIComponent("Información sobre la Escuela Club Palentino")}&body=${encodeURIComponent("Hola, me gustaría recibir información sobre las clases de ajedrez del curso 2026/2027. Gracias.")}`,
   whatsapp: `https://wa.me/34633586060?text=${encodeURIComponent("¡Hola! Me gustaría recibir información sobre la Escuela Club Palentino y las clases de ajedrez del curso 2026/2027.")}`,
+  generalEmailLink: `mailto:clubpalentinoajedrez@gmail.com?subject=${encodeURIComponent("Consulta para el Club Palentino de Ajedrez")}&body=${encodeURIComponent("Hola, me gustaría contactar con el club. Gracias.")}`,
+  generalWhatsapp: `https://wa.me/34633586060?text=${encodeURIComponent("¡Hola! Me gustaría contactar con el Club Palentino de Ajedrez.")}`,
   maps: "https://www.google.com/maps/search/?api=1&query=CEAS+Jose+Maria+Fernandez+Nieto+Camino+de+los+Hoyos+5+Palencia",
 };
 export const school = {

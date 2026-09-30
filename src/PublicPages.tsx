@@ -337,103 +337,92 @@ export function Classes() {
 }
 export function Contact() {
   return (
-    <div className="container inner-page public-page">
-      <Intro
-        eyebrow="CERCA, DENTRO Y FUERA DEL TABLERO"
-        title="Hablemos de ajedrez."
-      >
-        <p>
-          ¿Quieres conocer el club, aprender a jugar o participar en un torneo?
-          Escríbenos. Estaremos encantados de conocerte.
-        </p>
-      </Intro>
-      <div className="contact-layout">
-        <section className="contact-information" data-reveal="left">
-          <h2>
-            Club Palentino
-            <br />
-            de Ajedrez
-          </h2>
-          <p className="contact-location">
-            <MapPin size={20} aria-hidden="true" />
-            Palencia, Castilla y León
+    <div className="container inner-page public-page contact-page">
+      <section className="contact-hero" aria-labelledby="contact-title" data-reveal>
+        <div className="contact-hero-copy">
+          <p className="eyebrow">TU PRÓXIMA JUGADA EMPIEZA AQUÍ</p>
+          <h1 id="contact-title">Hablemos de ajedrez.</h1>
+          <p>
+            Si quieres aprender, jugar un torneo o simplemente conocer el club,
+            estamos al otro lado del tablero.
           </p>
-          <div className="details-list">
-            <div>
-              <Phone aria-hidden="true" />
-              <span>
-                <strong>Teléfono</strong>
-                <a className="contact-value" href={contact.phoneLink}>
-                  {contact.phone}
-                </a>
-              </span>
-            </div>
-            <div>
-              <EnvelopeSimple aria-hidden="true" />
-              <span>
-                <strong>Correo electrónico</strong>
-                <a className="contact-value" href={contact.emailLink}>
-                  {contact.email}
-                </a>
-              </span>
-            </div>
-            <div>
-              <MapPin aria-hidden="true" />
-              <span>
-                <strong>Lugar de las clases</strong>
-                <small>
-                  {school.venue}
-                  <br />
-                  {school.address}, {school.city}
-                </small>
-                <a
-                  className="text-link"
-                  href={contact.maps}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Ver en el mapa <ArrowUpRight aria-hidden="true" />
-                </a>
-              </span>
-            </div>
-          </div>
-          <div className="contact-buttons">
-            <a
-              className="button"
-              href={contact.whatsapp}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <WhatsappLogo aria-hidden="true" />
-              Abrir WhatsApp
-            </a>
-            <a className="button button-secondary" href={contact.emailLink}>
-              <EnvelopeSimple aria-hidden="true" />
-              Enviar un correo
-            </a>
-          </div>
-          <p className="muted">
-            Abriremos WhatsApp o tu aplicación de correo con un mensaje
-            preparado para que puedas revisarlo y enviarlo.
-          </p>
-        </section>
-        <aside className="contact-brand" data-reveal="right">
-          <img
-            src={asset("logo-palentino.jpg")}
-            width="280"
-            height="280"
-            alt="Escudo del Club Palentino de Ajedrez"
-          />
-          <h3>
-            Una pasión compartida.
-            <br />
-            Un club en Palencia.
-          </h3>
-          <a className="text-link" href="/escuela">
-            Escuela Club Palentino <ArrowRight aria-hidden="true" />
+          <a
+            className="button contact-hero-button"
+            href={contact.generalWhatsapp}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <WhatsappLogo aria-hidden="true" />
+            Escríbenos por WhatsApp
+            <ArrowUpRight aria-hidden="true" />
           </a>
-        </aside>
-      </div>
+        </div>
+        <div className="contact-hero-art" aria-hidden="true">
+          <div className="contact-art-board" />
+          <img src={asset("caballo-staunton.webp")} width="500" height="500" alt="" />
+          <span>PALENCIA · AJEDREZ · CLUB</span>
+        </div>
+      </section>
+
+      <section className="contact-channels" aria-labelledby="contact-channels-title">
+        <div className="contact-section-heading" data-reveal>
+          <p className="eyebrow">ELIGE CÓMO CONTACTAR</p>
+          <h2 id="contact-channels-title">Estamos a una jugada de distancia.</h2>
+        </div>
+        <div className="contact-channel-grid">
+          <article className="contact-channel" data-reveal>
+            <span className="contact-channel-icon"><WhatsappLogo aria-hidden="true" /></span>
+            <span className="contact-channel-number">01 / MENSAJE</span>
+            <h3>WhatsApp</h3>
+            <p>Cuéntanos qué te interesa y hablamos por mensaje.</p>
+            <a className="text-link" href={contact.generalWhatsapp} target="_blank" rel="noopener noreferrer">
+              Abrir WhatsApp <ArrowUpRight aria-hidden="true" />
+            </a>
+          </article>
+          <article className="contact-channel" data-reveal data-reveal-delay="1">
+            <span className="contact-channel-icon"><Phone aria-hidden="true" /></span>
+            <span className="contact-channel-number">02 / LLAMADA</span>
+            <h3>Por teléfono</h3>
+            <p>Si prefieres hablar directamente, llámanos.</p>
+            <a className="text-link" href={contact.phoneLink}>{contact.phone}</a>
+          </article>
+          <article className="contact-channel" data-reveal data-reveal-delay="2">
+            <span className="contact-channel-icon"><EnvelopeSimple aria-hidden="true" /></span>
+            <span className="contact-channel-number">03 / CORREO</span>
+            <h3>Por correo</h3>
+            <p>Escríbenos con calma y te responderemos por email.</p>
+            <span className="contact-channel-email">{contact.email}</span>
+            <a className="text-link" href={contact.generalEmailLink}>
+              Enviar un correo <ArrowRight aria-hidden="true" />
+            </a>
+          </article>
+        </div>
+        <p className="contact-message-note">
+          WhatsApp y correo se abren con un mensaje preparado que puedes revisar antes de enviarlo.
+        </p>
+      </section>
+
+      <section className="contact-visit" aria-labelledby="contact-visit-title" data-reveal>
+        <div className="contact-visit-copy">
+          <p className="eyebrow">NOS VEMOS EN PALENCIA</p>
+          <h2 id="contact-visit-title">Del mensaje al tablero.</h2>
+          <p>La Escuela Club Palentino se reúne en el CEAS José M.ª Fernández Nieto. Ven a aprender y compartir ajedrez con nosotros.</p>
+          <a className="text-link" href="/escuela">
+            Conoce la escuela <ArrowRight aria-hidden="true" />
+          </a>
+        </div>
+        <div className="contact-venue">
+          <span className="contact-venue-icon"><MapPin aria-hidden="true" /></span>
+          <div>
+            <p className="contact-venue-label">LUGAR DE LAS CLASES</p>
+            <h3>{school.venue}</h3>
+            <p>{school.address}<br />{school.city}</p>
+            <a className="text-link" href={contact.maps} target="_blank" rel="noopener noreferrer">
+              Cómo llegar <ArrowUpRight aria-hidden="true" />
+            </a>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

@@ -666,35 +666,6 @@ img {
   font-size: 0.9rem;
   color: var(--muted);
 }
-.details-list > div {
-  display: flex;
-  gap: 18px;
-  align-items: flex-start;
-  padding-block: 22px;
-  border-bottom: 1px solid var(--line);
-}
-.details-list > div:last-child {
-  border-bottom: 0;
-}
-.details-list svg {
-  width: 23px;
-  height: 23px;
-  color: var(--accent);
-  margin-top: 2px;
-}
-.details-list strong,
-.details-list small {
-  display: block;
-}
-.details-list strong {
-  font-weight: 600;
-  font-size: 0.87rem;
-  margin-bottom: 7px;
-}
-.details-list small {
-  color: var(--muted);
-  font-size: 0.8rem;
-}
 .student-callout {
   display: flex;
   gap: 23px;
@@ -719,50 +690,205 @@ img {
   margin-left: auto;
   flex-shrink: 0;
 }
-.contact-layout {
+.contact-page {
+  padding-top: 36px;
+}
+.contact-hero {
   display: grid;
-  grid-template-columns: 1fr 0.85fr;
-  gap: 80px;
+  grid-template-columns: 1.06fr 0.94fr;
+  min-height: 490px;
+  overflow: hidden;
+  position: relative;
+  background: #20384c;
+  color: #fff;
+  border-radius: 8px;
 }
-.contact-information {
-  padding: 15px 0;
+.contact-hero-copy {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  padding: clamp(38px, 6vw, 84px);
 }
-.contact-information h2 {
-  margin-bottom: 20px;
+.contact-hero .eyebrow {
+  color: #c5d5e1;
+  margin-bottom: 22px;
 }
-.contact-location {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 0.9rem;
-  color: var(--accent);
+.contact-hero h1 {
+  max-width: 9ch;
+  font-size: clamp(3.3rem, 5.7vw, 5.4rem);
+  line-height: 1.02;
 }
-.contact-information > .muted {
-  font-size: 0.82rem;
-  margin-top: 28px;
-  max-width: 48ch;
+.contact-hero-copy > p:not(.eyebrow) {
+  max-width: 43ch;
+  color: #dfebf1;
+  font-size: 1rem;
+  margin: 25px 0 27px;
 }
-.contact-brand {
-  background: var(--tint);
-  border-radius: 7px;
-  padding: 45px 30px;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
+.contact-hero-button {
+  background: #f5eee3;
+  color: #20384c;
+  margin: 0;
 }
-.contact-brand img {
-  width: 210px;
-  height: 210px;
-  clip-path: circle(44% at 50% 50%);
+.contact-hero-button:hover {
+  background: #fff;
+}
+.contact-hero-art {
+  position: relative;
+  display: grid;
+  place-items: end center;
+  min-height: 420px;
+  isolation: isolate;
+  background: radial-gradient(circle at 58% 50%, #506d7d 0, #2a4559 52%, #20384c 74%);
+}
+.contact-art-board {
+  position: absolute;
+  width: 370px;
+  height: 370px;
+  top: 11%;
+  left: 9%;
+  transform: rotate(-11deg);
+  background: conic-gradient(#ffffff13 25%, transparent 0 50%, #ffffff13 0 75%, transparent 0) 0 0 / 92px 92px;
+  border: 1px solid #ffffff20;
+}
+.contact-hero-art img {
+  position: relative;
+  width: min(80%, 410px);
+  height: auto;
+  max-height: 94%;
+  object-fit: contain;
+  object-position: bottom;
+  filter: drop-shadow(18px 24px 18px #0b1f2a75);
+}
+.contact-hero-art > span {
+  position: absolute;
+  right: 25px;
+  bottom: 22px;
+  color: #ffffffb8;
+  font-size: 0.57rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  writing-mode: vertical-rl;
+}
+.contact-channels {
+  padding-top: 74px;
+}
+.contact-section-heading {
   margin-bottom: 28px;
 }
-.contact-brand h3 {
-  font-size: 2rem;
+.contact-section-heading .eyebrow {
+  margin-bottom: 12px;
+}
+.contact-section-heading h2 {
+  max-width: 20ch;
+}
+.contact-channel-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.contact-channel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 280px;
+  padding: 29px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+.contact-channel-icon,
+.contact-venue-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
   color: var(--accent);
-  line-height: 1.2;
-  margin-bottom: 20px;
+  background: var(--tint);
+  border-radius: 50%;
+}
+.contact-channel-icon svg,
+.contact-venue-icon svg {
+  width: 23px;
+  height: 23px;
+}
+.contact-channel-number {
+  color: var(--muted);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  margin: 27px 0 7px;
+}
+.contact-channel h3 {
+  font-size: 1.65rem;
+}
+.contact-channel p {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 12px 0 15px;
+}
+.contact-channel .text-link {
+  margin-top: auto;
+  overflow-wrap: anywhere;
+}
+.contact-channel-email {
+  color: var(--muted);
+  font-size: 0.77rem;
+  overflow-wrap: anywhere;
+  margin-bottom: 10px;
+}
+.contact-message-note {
+  color: var(--muted);
+  font-size: 0.75rem;
+  margin: 15px 0 0;
+}
+.contact-visit {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(35px, 6vw, 95px);
+  align-items: center;
+  margin-top: 78px;
+  padding: clamp(30px, 5vw, 65px);
+  background: var(--tint);
+  border-radius: 8px;
+}
+.contact-visit-copy .eyebrow {
+  margin-bottom: 14px;
+}
+.contact-visit-copy h2 {
+  max-width: 11ch;
+}
+.contact-visit-copy > p:not(.eyebrow) {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 19px 0 16px;
+  max-width: 45ch;
+}
+.contact-venue {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 30px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+.contact-venue-icon {
+  flex: none;
+}
+.contact-venue-label {
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin: 4px 0 10px;
+}
+.contact-venue h3 {
+  font-size: 1.55rem;
+}
+.contact-venue p:not(.contact-venue-label) {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 15px 0;
 }
 .segmented {
   display: inline-flex;
@@ -1480,20 +1606,6 @@ textarea {
   font-size: 0.88rem;
 }
 .enrollment-contact .text-link { overflow-wrap: anywhere; min-width: 0; }
-.contact-value {
-  font-size: 0.93rem;
-  color: var(--accent);
-  overflow-wrap: anywhere;
-}
-.contact-value:hover {
-  text-decoration: underline;
-}
-.contact-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 13px;
-  margin-top: 26px;
-}
 @media (max-width: 1200px) {
   .container {
     width: calc(100% - 72px);
@@ -1587,9 +1699,14 @@ textarea {
   .contact-cta h2 {
     font-size: 2.1rem;
   }
-  .contact-layout,
   .class-details {
     gap: 40px;
+  }
+  .contact-hero-copy {
+    padding: 45px;
+  }
+  .contact-channel {
+    padding: 24px;
   }
   .login-layout {
     gap: 40px;
@@ -1762,16 +1879,60 @@ textarea {
     margin-left: 0;
     width: 100%;
   }
-  .contact-layout {
+  .contact-page {
+    padding-top: 20px;
+  }
+  .contact-hero {
     grid-template-columns: 1fr;
-    gap: 35px;
   }
-  .contact-brand {
-    padding: 30px;
+  .contact-hero-copy {
+    padding: 35px 30px 25px;
   }
-  .contact-brand img {
-    width: 170px;
-    height: 170px;
+  .contact-hero h1 {
+    font-size: clamp(3rem, 11vw, 4.2rem);
+  }
+  .contact-hero-copy > p:not(.eyebrow) {
+    font-size: 0.92rem;
+    margin-block: 20px;
+  }
+  .contact-hero-art {
+    min-height: 240px;
+  }
+  .contact-art-board {
+    width: 270px;
+    height: 270px;
+    top: -10px;
+    left: calc(50% - 135px);
+    background-size: 68px 68px;
+  }
+  .contact-hero-art img {
+    width: 210px;
+    max-height: 245px;
+  }
+  .contact-channels {
+    padding-top: 55px;
+  }
+  .contact-channel-grid,
+  .contact-visit {
+    grid-template-columns: 1fr;
+  }
+  .contact-channel {
+    min-height: 0;
+    padding: 23px;
+  }
+  .contact-channel-number {
+    margin-top: 16px;
+  }
+  .contact-channel p {
+    margin-bottom: 8px;
+  }
+  .contact-visit {
+    gap: 26px;
+    margin-top: 55px;
+    padding: 28px;
+  }
+  .contact-venue {
+    padding: 22px;
   }
   .tournament-card {
     gap: 17px;
@@ -1941,9 +2102,6 @@ textarea {
   }
   .flexible-groups {
     font-size: 0.79rem;
-  }
-  .contact-value {
-    font-size: 0.87rem;
   }
 }
 @media (max-width: 370px) {
