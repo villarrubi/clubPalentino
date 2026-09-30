@@ -36,6 +36,7 @@ import {
 import { acceptFiles, validateFile } from "./repository";
 import { fileSize, formatDate } from "./data";
 import { NewsForm } from "./NewsForm";
+import { UsersPanel } from "./UsersPanel";
 
 function MaterialForm({
   material,
@@ -345,7 +346,7 @@ type Editor =
   | null;
 export function Admin() {
   const { repository, session, logout, notify } = useClub();
-  const [tab, setTab] = useState<"materials" | "tournaments" | "news">(
+  const [tab, setTab] = useState<"materials" | "tournaments" | "news" | "users">(
     "materials",
   );
   const [materials, setMaterials] = useState<Material[]>([]);
@@ -442,7 +443,7 @@ export function Admin() {
       >
         <p>
           {session?.role === "admin"
-            ? "Gestiona los materiales, los torneos y las noticias del club."
+            ? "Gestiona los materiales, los torneos, las noticias y los usuarios del club."
             : "Sube, organiza y actualiza los materiales de tus clases."}
         </p>
       </Intro>
@@ -477,8 +478,9 @@ export function Admin() {
               Noticias
             </button>
           )}
+          {session?.role === "admin" && <button aria-pressed={tab === 'users'} className={tab === 'users' ? 'selected' : ''} onClick={() => setTab('users')}>Usuarios</button>}
         </div>
-        <button
+        {tab !== 'users' && <button
           className="button"
           onClick={() =>
             setEditor({
@@ -497,9 +499,9 @@ export function Admin() {
             : tab === "news"
               ? "Nueva noticia"
               : "Nuevo torneo"}
-        </button>
+        </button>}
       </div>
-      {loading ? (
+      {tab === 'users' && session?.role === 'admin' ? <UsersPanel /> : loading ? (
         <Loading />
       ) : error ? (
         <ErrorMessage>{error}</ErrorMessage>

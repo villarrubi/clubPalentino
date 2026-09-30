@@ -61,15 +61,21 @@ Cada alta pide la contraseña dos veces **sin mostrarla**. Debe tener entre 15 y
 | --- | --- | --- | --- |
 | Alumno | `https://clubpalentinoajedrez.es/#/acceso` | Contraseña de clase | Consultar y descargar ambos niveles |
 | Profesor | `https://clubpalentinoajedrez.es/#/acceso-equipo` | Correo y contraseña personal | Lo anterior y crear/editar/eliminar materiales |
-| Administrador | Mismo acceso del equipo, o `#/panel` | Correo y contraseña personal | Lo anterior y publicar/editar/eliminar torneos y noticias |
+| Administrador | Mismo acceso del equipo, o `#/panel` | Correo y contraseña personal | Lo anterior, torneos, noticias y usuarios del equipo |
 
-La ruta del equipo no aparece en el menú público, pero no es secreta ni otorga permisos. El servidor decide el rol. No hay selector de rol ni registro de usuarios desde la web.
+La ruta del equipo no aparece en el menú público, pero no es secreta ni otorga permisos. El servidor decide el rol. No hay registro público ni selector de rol al iniciar sesión; solo el administrador puede crear cuentas y asignar sus permisos desde el panel.
 
 Los alumnos comparten un acceso: cualquier persona que conozca esa contraseña puede leer ambos niveles. No hay identidad individual, matrícula ni baja por alumno. Para retirar el acceso a alguien que conoce la contraseña, cambiarla y distribuir la nueva al grupo autorizado. El cambio revoca todas las sesiones de alumnos. Nunca usar esa misma contraseña para una cuenta del equipo.
 
 ## 4. Administrar cuentas y recuperar el acceso
 
-Estas operaciones requieren acceso técnico al servidor; el rol admin de la web gestiona contenido y no proporciona una consola de usuarios.
+Una vez creada la primera cuenta de administrador desde el servidor, entra en **Panel → Usuarios**. Puedes crear profesores y administradores, editar su nombre/rol, restablecer sus contraseñas y desactivar o reactivar cuentas. El correo de acceso permanece fijo; para usar otro, crea una cuenta nueva y desactiva la anterior.
+
+Para guardar cada cambio se pide **tu contraseña actual de administrador**, aparte de la nueva contraseña del usuario si procede. No se muestran contraseñas anteriores ni se envían correos automáticos. Facilita las credenciales al titular por un canal privado. Cambiar una cuenta cierra todas sus sesiones; si cambias tus propios datos o contraseña, tendrás que volver a entrar. Desactivar una cuenta conserva los materiales publicados. Restablecer una contraseña desde la web no reactiva una cuenta desactivada: hay un botón separado para reactivarla.
+
+No puedes desactivar tu propia cuenta ni quitarte el rol de administrador. El servidor también impide dejar el club sin un administrador activo. Los alumnos mantienen su acceso compartido y no aparecen en esta lista.
+
+La consola continúa disponible para el arranque inicial, recuperación de accesos y contraseña compartida de clase:
 
 ```sh
 # Cambiar contraseña (también reactiva una cuenta desactivada)
@@ -88,7 +94,7 @@ docker compose exec app npm run accounts -- revoke @class
 docker compose exec app npm run accounts -- revoke all
 ```
 
-No se puede desactivar/degradar al último administrador activo. No existe recuperación por correo: quien mantiene el servidor verifica la identidad por un canal conocido y cambia la contraseña en terminal. Si se pierde el único administrador, se puede crear otro mediante la consola del servidor. La sesión dura como máximo ocho horas y caduca tras treinta minutos sin peticiones autenticadas. La revocación se aplica en la siguiente solicitud; los archivos ya descargados no se pueden recuperar.
+No se puede desactivar/degradar al último administrador activo. No existe recuperación por correo: un administrador verifica la identidad por un canal conocido y restablece la contraseña desde Usuarios; si nadie puede entrar, el responsable técnico utiliza la terminal. Si se pierde el único administrador, se puede crear otro mediante la consola del servidor. La sesión dura como máximo ocho horas y caduca tras treinta minutos sin peticiones autenticadas. La revocación se aplica en la siguiente solicitud; los archivos ya descargados no se pueden recuperar.
 
 ## 5. Verificar antes de abrir al público
 

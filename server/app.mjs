@@ -5,6 +5,7 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
 import { dummyHash, studentEmail, tokenHash, verifyPassword, accountEmail } from './auth.mjs';
 import { HttpError, materialFile, newsImage, validateEntry } from './validation.mjs';
+import { AccountError, userRoutes } from './users.mjs';
 
 const hour = 60 * 60 * 1000;
 const sessionLifetime = 8 * hour;
@@ -80,6 +81,11 @@ export function createApp({ db, origin, production = true, trustProxy = false, d
   const loginIpLimit = rateLimit({ windowMs: 15 * 60000, limit: 30, standardHeaders: 'draft-8', legacyHeaders: false,
     message: { error: 'Demasiados intentos. Espera quince minutos.' } });
   let hashing = 0;
+  async function runHash(action) {
+    if (hashing >= 2) throw new HttpError(503);
+    hashing++;
+    try { return await action(); } finally { hashing--; }
+  }
   const login = (student) => async (req, res) => {
     const body = req.body;
     if (!body || typeof body !== 'object' || Array.isArray(body) ||
@@ -100,10 +106,7 @@ export function createApp({ db, origin, production = true, trustProxy = false, d
       DO UPDATE SET attempts = CASE WHEN reset_at <= ? THEN 1 ELSE attempts + 1 END,
       reset_at = CASE WHEN reset_at <= ? THEN excluded.reset_at ELSE reset_at END`).run(key, time + 15 * 60000, time, time);
     const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-    hashing++;
-    let valid;
-    try { valid = await verifyPassword(body.password, user?.active ? user.password_hash : dummyHash); }
-    finally { hashing--; }
+    const valid = await runHash(() => verifyPassword(body.password, user?.active ? user.password_hash : dummyHash));
     if (!valid || !user?.active || (student ? user.role !== 'student' : !['teacher', 'admin'].includes(user.role)))
       throw new HttpError(401);
     // Recheck after async hashing so disable/password change cannot race login.
@@ -118,6 +121,7 @@ export function createApp({ db, origin, production = true, trustProxy = false, d
   };
   api.post('/session', loginIpLimit, express.json({ limit: '2kb', type: 'application/json' }), login(false));
   api.post('/session/student', loginIpLimit, express.json({ limit: '2kb', type: 'application/json' }), login(true));
+  api.use('/users', userRoutes({ db, allowAdmin: allow('admin'), runHash, now }));
 
   const allRoles = ['student', 'teacher', 'admin'];
   api.get('/materials', allow(...allRoles), (_req, res) => res.json(list('materials')));
@@ -209,7 +213,7 @@ export function createApp({ db, origin, production = true, trustProxy = false, d
       ? (error.code === 'LIMIT_FILE_SIZE' ? 413 : 400) : [400, 413, 415].includes(error.status) ? error.status : 500;
     // Do not log bodies, credentials, cookies, uploaded names or raw exception messages.
     if (status === 500) console.error('Error interno del servicio.');
-    res.status(status).json({ error: status === 500 ? 'Error interno.' : 'No se ha podido completar la solicitud.' });
+    res.status(status).json({ error: error instanceof AccountError ? error.message : status === 500 ? 'Error interno.' : 'No se ha podido completar la solicitud.' });
   });
   return app;
 }

@@ -40,6 +40,7 @@ test("sin servicio: no permite entrar ni recuperar las antiguas sesiones de demo
       () => repo.saveMaterial({}), () => repo.deleteMaterial("x"),
       () => repo.saveTournament({}), () => repo.deleteTournament("x"),
       () => repo.saveNews({}), () => repo.deleteNews("x"),
+      () => repo.users(), () => repo.createUser({}), () => repo.updateUser("x", {}),
     ]) {
       try { await action(); results.push("allowed"); }
       catch (error) { results.push((error as Error).message); }
@@ -47,7 +48,7 @@ test("sin servicio: no permite entrar ni recuperar las antiguas sesiones de demo
     return { results, session: await repo.session() };
   });
   expect(results.session).toBeNull();
-  expect(results.results).toHaveLength(8);
+  expect(results.results).toHaveLength(11);
   for (const result of results.results) expect(result).toContain("No tienes permiso");
 });
 

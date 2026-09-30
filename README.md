@@ -63,9 +63,9 @@ Ver [guía de despliegue y cuentas](docs/DESPLIEGUE.md), [contrato de API](docs/
 | --- | --- | --- |
 | Alumno | `#/acceso`, contraseña compartida de clase | Leer y descargar ambos niveles |
 | Profesor | `#/acceso-equipo` o `#/panel`, correo y contraseña personal | Aula y alta, edición y borrado de materiales |
-| Administrador | Mismo acceso del equipo, cuenta con rol admin | Lo anterior, noticias y torneos |
+| Administrador | Mismo acceso del equipo, cuenta con rol admin | Lo anterior, noticias, torneos y usuarios del equipo |
 
-La gestión de cuentas (altas, bajas, contraseñas, roles y revocación) se hace mediante `npm run accounts` en una terminal del servidor, por el responsable técnico. No existe registro público, selector de rol, recuperación por correo ni panel web de usuarios. El nombre de la ruta no concede permisos.
+El administrador dispone de **Panel → Usuarios** para crear cuentas del equipo, editar nombre y rol, cambiar contraseñas y desactivar/reactivar accesos. Cada cambio requiere su contraseña actual y revoca las sesiones de la cuenta modificada. No puede desactivarse a sí mismo, quitarse sus permisos ni dejar el club sin un administrador activo. La primera cuenta de administrador se crea con `npm run accounts` en el servidor; esa consola también permite recuperar accesos y cambiar la contraseña compartida de clases. No existe registro público ni recuperación automática por correo. El nombre de la ruta no concede permisos.
 
 `public/config.json` sigue vacío para GitHub Pages. Al arrancar el servidor, `/config.json` devuelve automáticamente `{ "apiBaseUrl": "/api" }`. No hay que publicar credenciales ni editar el frontend. El servidor incluido exige el mismo origen y no admite conectar directamente una página de GitHub Pages con cookies entre dominios; para ello haría falta otro diseño de despliegue.
 

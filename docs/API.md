@@ -25,6 +25,20 @@ Operaciones mutables, incluidos login y logout, requieren `Origin` igual a `APP_
 
 Todas las respuestas API usan `Cache-Control: no-store`. CSP restringe scripts y conexiones al mismo origen, prohíbe objetos, bases y marcos; los estilos inline se permiten para las animaciones. También se envían HSTS en producción, `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer` y restricciones de cámara/micrófono/geolocalización.
 
+## Usuarios del equipo
+
+| Método y ruta | Permiso | Entrada/salida |
+| --- | --- | --- |
+| GET /users | Admin | Array `{id,email,name,role,active,isCurrent}`; nunca hashes o sesiones |
+| POST /users | Admin + contraseña actual | JSON `{email,name,role,password,currentPassword}`; 204 |
+| PATCH /users/:id | Admin + contraseña actual | JSON `{currentPassword,name?,role?,active?,password?}`; 204 |
+
+Solo cuentas `teacher` y `admin`; el acceso compartido `@class` no se lista ni puede modificarse mediante estas rutas. No hay DELETE: las bajas usan `active:false` y conservan contenido. El correo se normaliza a minúsculas y no es editable; no se sobrescriben cuentas existentes, incluidas las desactivadas (409). Nombre obligatorio hasta 100 caracteres; contraseñas nuevas entre 15 y 128; `active` debe ser booleano; se rechazan campos extra.
+
+Cada mutación verifica `currentPassword` del administrador, con límite de 30 solicitudes por administrador/15 minutos. Un error de confirmación devuelve 403 sin cerrar la sesión. Se comparte el máximo de dos operaciones scrypt simultáneas con el login. Tras las operaciones asíncronas se vuelve a comprobar que la sesión y credencial del administrador siguen vigentes. Las escrituras y revocaciones se hacen en una transacción.
+
+No se permite desactivar/degradar al último administrador activo ni modificar los propios permisos/estado para perder acceso. Cambiar nombre, rol, estado o contraseña cierra todas las sesiones de la cuenta afectada. Si es la propia, el cliente vuelve al acceso del equipo. Restablecer contraseña no reactiva automáticamente cuentas; `active:true` es una operación explícita. Los errores de validación/conflicto de estas rutas usan mensajes seguros para el panel. La primera cuenta admin y la recuperación de emergencia siguen disponibles mediante consola.
+
 ## Materiales
 
 | Método y ruta | Permiso | Entrada/salida |

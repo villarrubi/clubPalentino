@@ -14,6 +14,25 @@ export interface Session {
   role: Role;
   name: string;
 }
+export interface StaffUser {
+  id: string;
+  email: string;
+  name: string;
+  role: "teacher" | "admin";
+  active: boolean;
+  isCurrent: boolean;
+}
+export interface NewStaffUser {
+  email: string;
+  name: string;
+  role: "teacher" | "admin";
+  password: string;
+  currentPassword: string;
+}
+export type StaffUserChanges = Partial<Pick<StaffUser, "name" | "role" | "active">> & {
+  password?: string;
+  currentPassword: string;
+};
 export interface Material {
   id: string;
   title: string;
@@ -61,6 +80,9 @@ export interface Repository {
   session(): Promise<Session | null>;
   login(credentials: Credentials): Promise<Session>;
   logout(): Promise<void>;
+  users(): Promise<StaffUser[]>;
+  createUser(input: NewStaffUser): Promise<void>;
+  updateUser(id: string, input: StaffUserChanges): Promise<void>;
   materials(): Promise<Material[]>;
   saveMaterial(input: MaterialInput, file?: File, id?: string): Promise<void>;
   deleteMaterial(id: string): Promise<void>;

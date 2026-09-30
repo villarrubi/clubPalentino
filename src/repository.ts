@@ -1,5 +1,8 @@
 import type {
   Repository,
+  StaffUser,
+  NewStaffUser,
+  StaffUserChanges,
   NewsArticle,
   NewsInput,
   Session,
@@ -183,6 +186,9 @@ class DemoRepository implements Repository {
     throw new Error("No tienes permiso para acceder al contenido. El servicio de acceso aún no está configurado.");
   }
   async materials(): Promise<Material[]> { return this.denyAccess(); }
+  async users(): Promise<StaffUser[]> { return this.denyAccess(); }
+  async createUser(_input: NewStaffUser) { this.denyAccess(); }
+  async updateUser(_id: string, _input: StaffUserChanges) { this.denyAccess(); }
   async saveMaterial(_input: MaterialInput, _file?: File, _id?: string) { this.denyAccess(); }
   async deleteMaterial(_id: string) { this.denyAccess(); }
   async download(_id: string): Promise<Blob> { return this.denyAccess(); }
@@ -215,6 +221,10 @@ class RemoteRepository implements Repository {
           "La sesión ha caducado o las credenciales no son correctas. Vuelve a acceder.",
         );
       }
+      if (path.startsWith('/users') && [400, 403, 409].includes(response.status)) {
+        const body = await response.json().catch(() => null);
+        if (typeof body?.error === 'string') throw new Error(body.error);
+      }
       if (response.status === 403)
         throw new Error("Tu perfil no tiene permiso para esta acción.");
       if (response.status === 429)
@@ -245,6 +255,13 @@ class RemoteRepository implements Repository {
   }
   async logout() {
     await this.request("/session", { method: "DELETE" });
+  }
+  async users() { return this.request<StaffUser[]>("/users"); }
+  async createUser(input: NewStaffUser) {
+    await this.request('/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+  }
+  async updateUser(id: string, input: StaffUserChanges) {
+    await this.request(`/users/${encodeURIComponent(id)}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
   }
   async materials() {
     return (await this.request<Material[]>("/materials")).map(normalizeMaterial);
