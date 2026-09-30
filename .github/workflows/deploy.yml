@@ -19,6 +19,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - run: npm audit --audit-level=high
+      - run: npm run test:server
       - run: npx playwright install --with-deps chromium
       - run: npm test
       - uses: actions/upload-pages-artifact@v3

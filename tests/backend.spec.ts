@@ -1,0 +1,84 @@
+import { test, expect } from '@playwright/test';
+import { createServer, type Server } from 'node:http';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { randomBytes } from 'node:crypto';
+import { once } from 'node:events';
+import { openStore } from '../server/store.mjs';
+import { createApp } from '../server/app.mjs';
+import { saveAccount } from '../server/auth.mjs';
+
+let server: Server, db: ReturnType<typeof openStore>, origin: string, dir: string;
+const password = randomBytes(24).toString('base64url');
+test.beforeAll(async () => {
+  dir = mkdtempSync(join(tmpdir(), 'club-browser-'));
+  db = openStore(join(dir, 'club.sqlite'));
+  for (const role of ['student', 'teacher', 'admin']) await saveAccount(db, { role, email: `${role}@example.test`, name: role, password });
+  server = createServer().listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const address = server.address();
+  if (!address || typeof address === 'string') throw new Error('No se pudo abrir el servidor de prueba');
+  origin = `http://127.0.0.1:${address.port}`;
+  server.on('request', createApp({ db, origin, production: false }));
+});
+test.afterAll(async () => {
+  if (server) await new Promise<void>((resolve) => server.close(() => resolve()));
+  db?.close();
+  if (dir) rmSync(dir, { recursive: true, force: true });
+});
+
+test('servidor real: tres accesos, subida, descarga, cookie y permisos', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto(`${origin}/#/acceso-equipo`);
+  await page.getByLabel('Correo electrónico').fill('teacher@example.test');
+  await page.getByLabel('Contraseña', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Subir material', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Noticias', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Subir material', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Título del material').fill('Material privado real');
+  await dialog.getByLabel('Tema', { exact: true }).fill('Finales');
+  await dialog.locator('input[type=file]').setInputFiles({ name: 'finales.txt', mimeType: 'text/plain', buffer: Buffer.from('Ejercicio privado') });
+  await dialog.getByRole('button', { name: 'Subir material', exact: true }).click();
+  await expect(dialog).not.toBeVisible();
+  expect(await page.evaluate(() => document.cookie)).not.toContain('club-session');
+  expect(await page.evaluate(() => JSON.stringify({ ...localStorage, ...sessionStorage }))).not.toContain(password);
+  await page.getByRole('button', { name: 'Cerrar sesión', exact: true }).click();
+  await expect(page.getByLabel('Contraseña de las clases')).toBeVisible();
+  await page.getByLabel('Contraseña de las clases').fill(password);
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await expect(page).toHaveURL(/#\/aula$/);
+  await page.goto(`${origin}/#/aula/iniciacion`);
+  await expect(page.getByRole('heading', { name: 'Material privado real' })).toBeVisible();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Descargar Material privado real' }).click();
+  expect((await download).suggestedFilename()).toBe('finales.txt');
+  await page.goto(`${origin}/#/panel`);
+  await expect(page.getByRole('heading', { name: 'Este espacio es para el profesorado.' })).toBeVisible();
+  await page.goto(`${origin}/#/aula`);
+  await page.getByRole('button', { name: 'Salir', exact: true }).click();
+  await expect(page.getByLabel('Contraseña de las clases')).toBeVisible();
+  await page.goto(`${origin}/#/acceso-equipo`);
+  await page.getByLabel('Correo electrónico').fill('admin@example.test');
+  await page.getByLabel('Contraseña', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Noticias', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Torneos', exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Noticias', exact: true })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('servidor real: una sesión revocada retira el contenido privado en el siguiente acceso', async ({ page }) => {
+  await page.goto(`${origin}/#/acceso`);
+  await page.getByLabel('Contraseña de las clases').fill(password);
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await expect(page).toHaveURL(/#\/aula$/);
+  db.prepare('DELETE FROM sessions').run();
+  await page.getByRole('link', { name: /LOS PRIMEROS PASOS/ }).click();
+  await expect(page.getByLabel('Contraseña de las clases')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Descargar/ })).toHaveCount(0);
+});

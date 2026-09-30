@@ -62,6 +62,8 @@ export function Login({ destination = "/aula" }: { destination?: string }) {
     } catch (error) {
       setError((error as Error).message);
     } finally {
+      setPassword("");
+      setShow(false);
       setBusy(false);
     }
   }

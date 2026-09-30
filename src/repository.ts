@@ -11,6 +11,7 @@ import type {
 } from "./types";
 import { news as pressNews } from "./data";
 import { readNewsImage, validateNews } from "./newsValidation";
+import { publicImage, publicLink, sessionExpiredEvent } from "./security";
 
 export const acceptedExtensions = [
   "pdf",
@@ -185,13 +186,16 @@ class DemoRepository implements Repository {
   async saveMaterial(_input: MaterialInput, _file?: File, _id?: string) { this.denyAccess(); }
   async deleteMaterial(_id: string) { this.denyAccess(); }
   async download(_id: string): Promise<Blob> { return this.denyAccess(); }
-  async tournaments() { return read<Tournament[]>("tournaments"); }
+  async tournaments() { return (await read<Tournament[]>("tournaments")).map(safeTournament); }
   async saveTournament(_input: TournamentInput, _id?: string) { this.denyAccess(); }
   async deleteTournament(_id: string) { this.denyAccess(); }
-  async news() { return read<NewsArticle[]>("news"); }
+  async news() { return (await read<NewsArticle[]>("news")).map(safeNews); }
   async saveNews(_input: NewsInput, _image?: File, _id?: string) { this.denyAccess(); }
   async deleteNews(_id: string) { this.denyAccess(); }
 }
+
+const safeTournament = (item: Tournament): Tournament => ({ ...item, url: publicLink(item.url) });
+const safeNews = (item: NewsArticle): NewsArticle => ({ ...item, url: publicLink(item.url), imageUrl: publicImage(item.imageUrl) });
 
 class RemoteRepository implements Repository {
   readonly mode = "remote" as const;
@@ -200,15 +204,21 @@ class RemoteRepository implements Repository {
     const response = await fetch(`${this.base}${path}`, {
       ...init,
       credentials: "include",
+      cache: "no-store",
+      redirect: "error",
       headers: { "X-Requested-With": "ClubPalentino", ...init?.headers },
     });
     if (!response.ok) {
-      if (response.status === 401)
+      if (response.status === 401) {
+        if (path !== "/session" || init?.method !== "POST") window.dispatchEvent(new Event(sessionExpiredEvent));
         throw new Error(
           "La sesión ha caducado o las credenciales no son correctas. Vuelve a acceder.",
         );
+      }
       if (response.status === 403)
         throw new Error("Tu perfil no tiene permiso para esta acción.");
+      if (response.status === 429)
+        throw new Error("Demasiados intentos. Espera unos minutos antes de volver a intentarlo.");
       throw new Error(
         "El servicio no ha podido completar la operación. Inténtalo de nuevo.",
       );
@@ -227,6 +237,10 @@ class RemoteRepository implements Repository {
       }),
     );
     if (!session) throw new Error("No se ha podido iniciar sesión.");
+    if (email === undefined ? session.role !== "student" : session.role === "student") {
+      await this.logout();
+      throw new Error("El servicio ha devuelto un perfil incorrecto para este acceso.");
+    }
     return session;
   }
   async logout() {
@@ -262,9 +276,12 @@ class RemoteRepository implements Repository {
       `${this.base}/materials/${encodeURIComponent(id)}/file`,
       {
         credentials: "include",
+        cache: "no-store",
+        redirect: "error",
         headers: { "X-Requested-With": "ClubPalentino" },
       },
     );
+    if (response.status === 401) window.dispatchEvent(new Event(sessionExpiredEvent));
     if (!response.ok)
       throw new Error(
         "No se pudo descargar el archivo. Comprueba tu sesión e inténtalo de nuevo.",
@@ -272,7 +289,7 @@ class RemoteRepository implements Repository {
     return response.blob();
   }
   async tournaments() {
-    return this.request<Tournament[]>("/tournaments");
+    return (await this.request<Tournament[]>("/tournaments")).map(safeTournament);
   }
   async saveTournament(input: TournamentInput, id?: string) {
     validateTournament(input);
@@ -291,7 +308,7 @@ class RemoteRepository implements Repository {
     });
   }
   async news() {
-    return this.request<NewsArticle[]>("/news");
+    return (await this.request<NewsArticle[]>("/news")).map(safeNews);
   }
   async saveNews(input: NewsInput, image?: File, id?: string) {
     validateNews(input);
@@ -323,14 +340,21 @@ export async function createRepository(): Promise<Repository> {
   if (typeof config.apiBaseUrl !== "string")
     throw new Error("La configuración del servicio no es válida.");
   if (config.apiBaseUrl === "") return new DemoRepository();
-  const url = new URL(config.apiBaseUrl);
+  // Relative API paths support deployment behind the same HTTPS origin.
+  let url: URL;
+  try { url = new URL(config.apiBaseUrl, location.origin); }
+  catch { throw new Error("La configuración del servicio no es válida."); }
+  if (url.username || url.password || url.search || url.hash ||
+      (config.apiBaseUrl.startsWith("/") && url.origin !== location.origin))
+    throw new Error("La configuración del servicio no es válida.");
   if (
     url.protocol !== "https:" &&
     !(
       url.protocol === "http:" &&
-      ["localhost", "127.0.0.1"].includes(url.hostname)
+      ["localhost", "127.0.0.1"].includes(url.hostname) &&
+      ["localhost", "127.0.0.1"].includes(location.hostname)
     )
   )
     throw new Error("El servicio debe utilizar HTTPS.");
-  return new RemoteRepository(config.apiBaseUrl.replace(/\/$/, ""));
+  return new RemoteRepository(url.href.replace(/\/$/, ""));
 }

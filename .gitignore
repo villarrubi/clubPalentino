@@ -7,3 +7,11 @@ playwright-report/
 !.env.example
 .DS_Store
 *.local
+data/
+backups/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.pem
+*.key

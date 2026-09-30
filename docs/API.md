@@ -1,111 +1,73 @@
-# Contrato del servicio futuro
+# API del Club Palentino
 
-Estado: cliente implementado, servidor y almacenamiento pendientes de elegir y construir. No hay credenciales de producción en el repositorio.
+Implementación: `server/app.mjs`, Node.js 24, Express y SQLite. La API vive en `/api`, en el mismo origen que la web. El servidor sirve únicamente `dist/`, nunca el repositorio o la base de datos. Configuración y operaciones: [DESPLIEGUE.md](DESPLIEGUE.md).
 
-## Configuración
+## Sesión
 
-Configurar `apiBaseUrl` en `public/config.json`. Las rutas siguientes son relativas a esa URL. HTTPS obligatorio, salvo localhost durante desarrollo. El cliente usa `credentials: include` y `X-Requested-With: ClubPalentino`.
-
-El servidor debe responder con CORS limitado al origen de la web, permitir credenciales y la cabecera personalizada. Rechazar orígenes ajenos en todas las operaciones mutables y solicitudes sin cabecera. Gestionar OPTIONS, JSON y multipart. No utilizar `Access-Control-Allow-Origin: *` con credenciales.
-
-Para cookies entre GitHub Pages y otro dominio, usar `HttpOnly; Secure; SameSite=None`, comprobar origen y aplicar protección CSRF. Los navegadores pueden bloquear cookies de terceros; se recomienda, al pasar a producción, web y API bajo el mismo dominio registrable o un proxy del mismo origen. Verificar ese comportamiento antes de activar el servicio.
-
-## Sesión y permisos
-
-| Método y ruta | Entrada | Respuesta |
+| Método y ruta | Entrada | Resultado |
 | --- | --- | --- |
-| GET /session | Cookie | `null` si no hay sesión; `{ "role": "student", "name": "Alumno" }` si la hay |
-| POST /session | JSON `{email, password}` del equipo | Sesión de profesor o administrador y cookie; error 401 para credenciales incorrectas |
-| POST /session/student | JSON `{password}` de las clases | Solo sesión `student` y cookie; error 401 para contraseña incorrecta |
-| DELETE /session | Cookie | 204; revocar sesión y eliminar cookie |
+| GET /session | Cookie | `null` o `{ "role": "student", "name": "Alumno" }` |
+| POST /session | JSON `{email, password}` | Cuenta personal de profesor/admin; cookie nueva |
+| POST /session/student | JSON `{password}` | Exclusivamente alumno; cookie nueva |
+| DELETE /session | Cookie | Revoca la sesión y borra cookie; 204 |
 
-Roles de respuesta: `student`, `teacher`, `admin`. **No aceptar un rol del cliente**. El acceso de alumnos (`#/acceso` y rutas del aula) pide solo la contraseña de las clases: `/session/student` debe validarla y emitir exclusivamente una sesión de alumno, incluso ante campos manipulados. El formulario separado `#/acceso-equipo` pide correo y contraseña: `/session` autentica la cuenta personal y obtiene sus permisos de los datos guardados en el servidor, sin distinguir profesor y administrador en la pantalla de acceso.
+Contraseñas con scrypt y sal individual (`N=131072,r=8,p=1`). Altas mediante terminal, entre 15 y 128 caracteres; no se guardan ni muestran contraseñas. La identidad de clase interna `@class` no es un correo ni permite iniciar sesión de equipo. No existe registro abierto. El cliente no puede enviar `role`, `active`, identificadores ni permisos durante el login.
 
-Almacenar las contraseñas con hash fuerte y sal; añadir caducidad, revocación y limitación de intentos a ambos accesos. Nunca utilizar las antiguas credenciales públicas de demo. No hay contraseñas ni cuentas incluidas en la aplicación.
+Sesiones opacas de 32 bytes aleatorios, guardadas como SHA-256; cookie de producción `__Host-club-session`, `HttpOnly; Secure; SameSite=Strict; Path=/`, máximo 8 horas y caducidad por 30 minutos sin peticiones autenticadas. Se comprueba la cuenta activa y su rol en cada solicitud. Login rota el token; logout, cambio de contraseña/rol y baja revocan sesiones. El cliente refresca al navegar, recuperar foco o recibir cambios de otra pestaña; un 401 retira el área privada. No puede retirar archivos que ya se hayan descargado.
 
-El cliente utiliza únicamente la sesión devuelta por el servicio; no restaura roles ni sesiones de vista previa desde sessionStorage. Sin servicio, el aula y la gestión están bloqueadas: no hay entrada de demostración ni lectura/descarga de materiales. La autorización efectiva de cada operación sigue siendo responsabilidad del servidor. Ocultar el enlace de gestión no sustituye estas comprobaciones. Este contrato debe implementarse antes de activar el servicio; el servidor y su despliegue quedan pendientes hasta elegir alojamiento.
+Límites: 30 intentos por IP/15 minutos, 10 por cuenta personal/15 minutos y 20 por IP de clase/15 minutos. Los contadores por cuenta/clase persisten en SQLite. Un login correcto reinicia ese contador; los intentos por IP siguen contando. Máximo dos verificaciones scrypt simultáneas; exceso devuelve 503. Límite general: 300 solicitudes/minuto/IP. Los límites de memoria requieren una única instancia de app.
 
-Todos los alumnos pueden leer los materiales de ambos niveles. No hay matrícula por curso, tareas, notas ni seguimiento.
+## Origen y transporte
+
+Producción exige `APP_ORIGIN=https://dominio` exacto, sin ruta ni credenciales. Solo Caddy publica puertos; `TRUST_PROXY=1` es válido exclusivamente detrás de ese proxy. El puerto Node no debe exponerse.
+
+Operaciones mutables, incluidos login y logout, requieren `Origin` igual a `APP_ORIGIN` y `X-Requested-With: ClubPalentino`. Se rechazan orígenes diferentes, `null` y `Sec-Fetch-Site: cross-site`. No se habilita CORS. JSON y multipart se analizan después de comprobar origen, límites y, para escritura de contenido, rol. Las llamadas CLI HTTP deben enviar ambas cabeceras.
+
+Todas las respuestas API usan `Cache-Control: no-store`. CSP restringe scripts y conexiones al mismo origen, prohíbe objetos, bases y marcos; los estilos inline se permiten para las animaciones. También se envían HSTS en producción, `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer` y restricciones de cámara/micrófono/geolocalización.
 
 ## Materiales
 
-| Método y ruta | Permiso | Entrada y respuesta |
+| Método y ruta | Permiso | Entrada/salida |
 | --- | --- | --- |
 | GET /materials | Cualquier sesión | Array de metadatos |
-| POST /materials | Profesor o admin | Multipart `title`, `topic`, `course`, `section`, `block`, `file`; 204 |
-| PATCH /materials/:id | Profesor o admin | Multipart `title`, `topic`, `course`, `section`, `block`, `file?`; 204 |
-| DELETE /materials/:id | Profesor o admin | Borrar metadatos y archivo; 204 |
-| GET /materials/:id/file | Cualquier sesión | Binario del archivo, tras comprobar sesión |
+| POST /materials | Profesor/admin | Multipart y archivo obligatorio; 204 |
+| PATCH /materials/:id | Profesor/admin | Multipart, archivo opcional; 204 |
+| DELETE /materials/:id | Profesor/admin | Borra metadatos y archivo; 204 |
+| GET /materials/:id/file | Cualquier sesión | Binario privado como descarga adjunta |
 
-Metadatos:
+Campos: `title` obligatorio hasta 160 caracteres; `topic` obligatorio hasta 80; `course` (`iniciacion`, `avanzado`); `section` (`syllabus`, `exercises`, `resources`); `block` hasta 80, obligatorio para ejercicios y vacío en otras secciones. Se rechazan campos desconocidos/duplicados y valores no textuales; se recortan espacios exteriores. Todos los alumnos acceden a ambos niveles.
 
-```json
-{
-  "id": "uuid",
-  "title": "Finales de peones",
-  "topic": "Finales",
-  "course": "iniciacion",
-  "section": "exercises",
-  "block": "Bloque 1 · Finales de peones",
-  "filename": "finales.pdf",
-  "size": 14500,
-  "updatedAt": "2026-09-26T12:00:00.000Z"
-}
-```
+Los metadatos añaden `id`, `filename`, `size`, `updatedAt`. Se guarda el binario en la misma fila SQLite para que creación, reemplazo y borrado sean atómicos. Los nombres no se usan como rutas. No hay directorio público de materiales ni enlaces permanentes sin autenticación.
 
-`section` admite `syllabus` (Temario), `exercises` (Ejercicios) o `resources` (Recursos). `block` es obligatorio para ejercicios, con hasta 80 caracteres tras normalizar espacios, y vacío para las otras secciones. El bloque agrupa ejercicios dentro de un nivel; se crea o reutiliza al guardar un material. Al cambiar el nombre en un material solo se reasigna ese material; un bloque sin ejercicios deja de mostrarse. El tema sigue siendo obligatorio e independiente del bloque. Migrar los registros anteriores sin sección a `syllabus` y bloque vacío (el cliente también ofrece esta compatibilidad de lectura).
-
-`course` admite `iniciacion` o `avanzado`. Título obligatorio, hasta 160 caracteres; tema obligatorio, hasta 80. Normalizar espacios. Validar en el servidor extensión, MIME y contenido, tamaño (1 byte a 25 MB), nombre de descarga y permisos de cada operación. Extensiones: pdf, ppt, pptx, doc, docx, odt, odp, pgn, zip, txt. No confiar en la validación del navegador.
-
-Almacenar los binarios en un contenedor privado y los metadatos en una base de datos. No exponer enlaces permanentes públicos. Usar respuestas autenticadas con `Content-Disposition: attachment`, `X-Content-Type-Options: nosniff` y políticas de caché apropiadas. Coordinar sustitución/borrado para evitar archivos huérfanos o referencias rotas.
+Extensiones: PDF, PPT, PPTX, DOC, DOCX, ODT, ODP, PGN, ZIP, TXT. Hasta 25 MB. Se contrastan extensión y firma de contenido; TXT/PGN requieren UTF-8 sin NUL. Los formatos antiguos DOC/PPT comparten firma CFB. La descarga usa `application/octet-stream`, nombre saneado y `Content-Disposition: attachment`. **La comprobación de formato no es un antivirus**: PDF, Office y ZIP pueden contener contenido peligroso. Los ZIP no se extraen en el servidor. Solo el equipo de confianza debe subir archivos.
 
 ## Torneos
 
-| Método y ruta | Permiso | Entrada y respuesta |
+| Método y ruta | Permiso | Entrada/salida |
 | --- | --- | --- |
-| GET /tournaments | Público | Array de torneos publicados |
-| POST /tournaments | Admin | JSON sin `id`; 204 |
-| PATCH /tournaments/:id | Admin | JSON sin `id`; 204 |
+| GET /tournaments | Público | Array de torneos |
+| POST /tournaments | Admin | JSON; 204 |
+| PATCH /tournaments/:id | Admin | JSON; 204 |
 | DELETE /tournaments/:id | Admin | 204 |
 
-```json
-{
-  "id": "uuid",
-  "title": "Nombre del torneo",
-  "date": "2026-10-10",
-  "time": "18:00",
-  "location": "Palencia",
-  "description": "Información para participantes.",
-  "url": "https://ejemplo.es/inscripcion"
-}
-```
-
-Título, fecha real de calendario y lugar obligatorios. Hora, descripción y URL opcionales (cadena vacía). Fecha local en `YYYY-MM-DD`, hora `HH:mm`, zona Europe/Madrid. El enlace solo admite HTTPS. El frontend separa próximos y anteriores por fecha en Madrid. No interpreta HTML en los textos.
+Campos: `title` obligatorio hasta 160; `date` fecha real YYYY-MM-DD; `time` HH:mm o vacío; `location` obligatorio hasta 200; `description` hasta 3000; `url` hasta 2048, HTTPS sin usuario/contraseña o vacío. Lectura añade `id` y `updatedAt`. La web clasifica fechas en Europe/Madrid. Se muestran textos, nunca HTML.
 
 ## Noticias
 
-| Método y ruta | Permiso | Entrada y respuesta |
+| Método y ruta | Permiso | Entrada/salida |
 | --- | --- | --- |
-| GET /news | Público | Array de noticias, incluido `imageUrl` público |
-| POST /news | Admin | Multipart con los campos de texto e `image` opcional; 204 |
-| PATCH /news/:id | Admin | Multipart con campos de texto e `image` opcional; 204 |
-| DELETE /news/:id | Admin | Borrar noticia y foto asociada; 204 |
+| GET /news | Público | Array de noticias |
+| GET /news/:id/image | Público | Foto WebP |
+| POST /news | Admin | Multipart; 204 |
+| PATCH /news/:id | Admin | Multipart; 204 |
+| DELETE /news/:id | Admin | Borra noticia y foto; 204 |
 
-Campos de texto: `title` (obligatorio, hasta 160 caracteres), `date` (fecha real YYYY-MM-DD), `summary` (obligatorio, hasta 300), `content` (obligatorio, hasta 20000), `imageAlt` (hasta 200, obligatorio cuando hay foto), `source` (opcional, hasta 100) y `url` (opcional, solo HTTPS). Se muestran como texto, nunca como HTML. La publicación es inmediata; la fecha indica la fecha editorial, no programa una publicación futura.
+Campos: `title` obligatorio hasta 160; `date` fecha real YYYY-MM-DD; `summary` obligatorio hasta 300; `content` obligatorio hasta 20000; `imageAlt` hasta 200, obligatorio con foto; `source` hasta 100; `url` hasta 2048, HTTPS sin credenciales o vacío. Lectura añade `id`, `updatedAt` e `imageUrl` del mismo origen o vacío. Publicación inmediata; no se programa por fecha.
 
-La lectura añade `id`, `imageUrl` (cadena vacía si no hay foto) y `updatedAt` (ISO 8601). La portada muestra la noticia más reciente; Noticias muestra todas, ordenadas por fecha y actualización. Cada noticia tiene su página `#/noticias/:id`. El enlace externo es adicional al texto propio.
+`image` admite JPEG, PNG y WebP, hasta 5 MB y 24 millones de píxeles. El servidor decodifica y convierte a WebP, elimina metadatos y limita a 2400×2400 sin ampliar. Una actualización sin foto conserva la anterior. Máximo dos cargas/procesados de contenido simultáneos. Los enlaces recibidos también se filtran en el cliente; no se interpreta HTML.
 
-`image` admite JPEG, PNG y WebP de hasta 5 MB. Comprobar formato, contenido decodificable, tamaño y permisos en el servidor. Al editar sin imagen, conservar la foto anterior; al sustituirla, coordinar el reemplazo del archivo y los metadatos. Las fotos de noticias son públicas, a diferencia de los materiales. El servidor debe devolver URLs válidas para esas fotos y denegar cualquier escritura a visitantes, alumnos y profesores.
+## Errores
 
-El repositorio local de la web pública conserva IndexedDB versión 2: añade noticias sin borrar materiales, archivos o torneos existentes. La noticia de prensa original se importa una vez al crear el almacén; su borrado no la vuelve a importar. Las fotos de demostraciones anteriores se conservan como data URLs locales. No se permite leer ni descargar materiales, ni realizar escrituras desde la aplicación sin servicio de autenticación. Los datos antiguos permanecen en el dispositivo sin migrarlos ni exponerlos en el aula. El modo remoto necesita implementar estos endpoints antes de activarlo; la migración local no carga noticias en un servidor.
+401 sin sesión/credenciales incorrectas; 403 origen/permiso denegado; 400 entrada inválida; 413 tamaño; 415 formato; 404 recurso; 429 límite de intentos; 503 capacidad temporal; 500 error interno genérico. Nunca se devuelven hashes, tokens, consultas SQL o detalles internos. No se registran cuerpos, cookies ni contraseñas.
 
-## Errores y puesta en marcha
-
-- 401: sesión ausente/caducada o credenciales incorrectas.
-- 403: sesión válida sin permiso suficiente.
-- 400/413/415: entrada, tamaño o formato inválidos.
-- 404: recurso inexistente.
-- 429: límite de solicitudes.
-- 5xx: error interno sin datos sensibles.
-
-El cliente muestra errores seguros y no convierte fallos remotos en datos locales. Antes de activar: probar acceso y revocación, negativa de acceso directo a binarios, denegación de escritura para alumnos, denegación de torneos y noticias para profesores, CORS/CSRF y recuperación de copias. El servidor debe probar estos permisos independientemente de lo que muestre la interfaz.
+Pruebas: `npm run test:server` y `npm test`. El modo estático sin servicio conserva los datos locales antiguos, pero bloquea materiales y escrituras. No se migran automáticamente datos de IndexedDB al servidor.

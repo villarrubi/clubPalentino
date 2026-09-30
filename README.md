@@ -1,6 +1,6 @@
 # Club Palentino de Ajedrez
 
-Web del club, Escuela Club Palentino y biblioteca de materiales. React + TypeScript + Vite, preparada para GitHub Pages y adaptable a móvil, tableta y ordenador.
+Web del club, Escuela Club Palentino y biblioteca de materiales. React + TypeScript + Vite, con servidor Node.js 24 y SQLite. Despliegue completo con Docker y HTTPS; GitHub Pages conserva únicamente la web pública.
 
 Web: https://villarrubi.github.io/clubPalentino/
 
@@ -16,13 +16,13 @@ Web: https://villarrubi.github.io/clubPalentino/
 
 ## Acceso y área de alumnos
 
-El aula es privada: los alumnos entrarán con la **contraseña de las clases**, sin correo ni elección de rol. El servicio deberá comprobar esa contraseña y emitir una sesión exclusivamente de alumno.
+El aula es privada: los alumnos entrarán con la **contraseña de las clases**, sin correo ni elección de rol. El servidor comprueba esa contraseña y emite una sesión exclusivamente de alumno. Es un acceso compartido: no identifica a cada alumno ni permite revocar solo a uno.
 
-Profesores y administradores comparten un formulario independiente en `#/acceso-equipo` con **correo y contraseña personal**. No hay enlaces a ese formulario en el menú, el pie de página ni el acceso de alumnos. La ruta directa `#/panel` también solicita esas credenciales si no hay sesión. El servidor asignará los permisos de la cuenta, sin recibir un rol elegido por el visitante. La dirección discreta no es un mecanismo de autorización.
+Profesores y administradores comparten un formulario independiente en `#/acceso-equipo` con **correo y contraseña personal**. No hay enlaces a ese formulario en el menú, el pie de página ni el acceso de alumnos. La ruta directa `#/panel` también solicita esas credenciales si no hay sesión. El servidor asigna los permisos de la cuenta, sin recibir un rol elegido por el visitante. La dirección discreta no es un mecanismo de autorización.
 
-**Estado actual en GitHub Pages:** el servicio de autenticación y almacenamiento todavía no existe ni está conectado. Los formularios están preparados, pero el acceso al aula y a la gestión permanece desactivado; no hay credenciales válidas ni entrada de vista previa. La web pública sigue funcionando. No subir materiales privados al repositorio ni a `public/`.
+**GitHub Pages:** publica solo archivos estáticos y mantiene el aula bloqueada con `apiBaseUrl` vacío. **Servidor completo:** `server/` implementa autenticación, autorización y almacenamiento privado, y sirve web y API en el mismo dominio. No contiene cuentas ni contraseñas predeterminadas. Sigue [DESPLIEGUE.md](docs/DESPLIEGUE.md) para activar los accesos. No subir materiales privados al repositorio ni a `public/`.
 
-Las sesiones antiguas de demostración se descartan. El repositorio local deniega leer o descargar materiales y cualquier escritura, incluso al invocarlo directamente. Conserva los antiguos datos de prueba de IndexedDB en ese navegador sin mostrarlos en el aula; IndexedDB no es almacenamiento privado ni compartido. Al elegir alojamiento habrá que implementar el servicio y migrar los materiales que se quieran conservar.
+Las sesiones antiguas de demostración se descartan. El repositorio local deniega leer o descargar materiales y cualquier escritura, incluso al invocarlo directamente. Conserva los antiguos datos de prueba de IndexedDB en ese navegador sin mostrarlos en el aula; IndexedDB no es almacenamiento privado ni compartido. Los datos locales antiguos no se migran automáticamente: hay que volver a subir los materiales que se quieran conservar desde una cuenta del equipo.
 
 Cada nivel tiene tres zonas: **Temario**, **Ejercicios** y **Recursos**. El temario y los recursos se agrupan por tema; los ejercicios, por bloques con nombre. El panel permite elegir sección, crear o reutilizar un bloque y reasignar materiales al editarlos. Los materiales anteriores sin sección aparecen en Temario. No hay tareas, notas ni seguimiento individual.
 
@@ -42,27 +42,32 @@ npm run preview
 ## Comprobaciones
 
 ```sh
+npm run build
+npm run test:server
 npx playwright install chromium
 npm test
+npm audit --audit-level=high
 ```
 
-Playwright comprueba escritorio y móvil: navegación, enlaces profundos, contenido del curso, contacto, ambos niveles, bloqueo del aula sin servicio, contraseña de alumnos y acceso separado del equipo sin selector de rol, secciones y bloques, subida, edición, descarga y borrado de materiales, gestión de torneos, archivos rechazados, configuración fallida, tema oscuro y desbordamientos entre 320 y 1440 px. Los flujos de gestión usan una API simulada exclusivamente en las pruebas, sin cuentas ni credenciales de prueba en la aplicación. No sustituyen las pruebas de autorización del futuro servidor. Incluye análisis automatizado de accesibilidad con axe; no sustituye una auditoría manual completa ni una prueba en todos los dispositivos físicos.
+Playwright comprueba escritorio y móvil: navegación, enlaces profundos, contenido del curso, contacto, ambos niveles, bloqueo del aula sin servicio, contraseña de alumnos y acceso separado del equipo sin selector de rol, secciones y bloques, subida, edición, descarga y borrado de materiales, gestión de torneos, archivos rechazados, configuración fallida, tema oscuro y desbordamientos entre 320 y 1440 px. Las pruebas originales de gestión usan una API simulada. Además, `tests/backend.spec.ts` comprueba los tres accesos con el servidor real y el paquete de producción; `server/tests/security.test.mjs` prueba permisos, CSRF, archivos, caducidad y revocación directamente contra HTTP, sin depender de la interfaz. Las cuentas de estas pruebas son temporales y no se incluyen en el despliegue. Incluye análisis automatizado de accesibilidad con axe; no sustituye una auditoría manual completa ni una prueba en todos los dispositivos físicos.
 
 ## Publicación
 
 Cada push a `main` ejecuta `.github/workflows/deploy.yml`: instala dependencias, compila, ejecuta las pruebas y publica `dist` en GitHub Pages. En Settings → Pages, la fuente debe ser GitHub Actions. Las rutas con `#` permiten recargar y compartir páginas sin reglas de servidor.
 
-## Conectar el servicio definitivo
+## Despliegue completo y usuarios
 
-`public/config.json` contiene `apiBaseUrl`. Vacío mantiene únicamente la web pública, con aula y gestión bloqueadas. Cuando exista un servicio compatible, indica su URL HTTPS; por ejemplo:
+Ver [guía de despliegue y cuentas](docs/DESPLIEGUE.md), [contrato de API](docs/API.md) e [informe de seguridad](docs/SEGURIDAD.md).
 
-```json
-{ "apiBaseUrl": "https://api.tu-dominio.es" }
-```
+| Rol | Acceso | Permisos |
+| --- | --- | --- |
+| Alumno | `#/acceso`, contraseña compartida de clase | Leer y descargar ambos niveles |
+| Profesor | `#/acceso-equipo` o `#/panel`, correo y contraseña personal | Aula y alta, edición y borrado de materiales |
+| Administrador | Mismo acceso del equipo, cuenta con rol admin | Lo anterior, noticias y torneos |
 
-Una carpeta o URL de almacenamiento por sí sola no basta: hay que implementar autenticación, autorización y almacenamiento en un servidor. El cliente remoto ya está preparado. El contrato y los requisitos están en [docs/API.md](docs/API.md). Si falla un servicio configurado, la aplicación no se cambia silenciosamente a la demo.
+La gestión de cuentas (altas, bajas, contraseñas, roles y revocación) se hace mediante `npm run accounts` en una terminal del servidor, por el responsable técnico. No existe registro público, selector de rol, recuperación por correo ni panel web de usuarios. El nombre de la ruta no concede permisos.
 
-La autenticación prevista utiliza una contraseña de clases para los alumnos y cuentas personales con correo y contraseña para profesores y administradores. El servidor decide y comprueba los permisos. Los materiales deben permanecer fuera de este repositorio y de las carpetas públicas de GitHub Pages. Los datos de demostración no se migran automáticamente.
+`public/config.json` sigue vacío para GitHub Pages. Al arrancar el servidor, `/config.json` devuelve automáticamente `{ "apiBaseUrl": "/api" }`. No hay que publicar credenciales ni editar el frontend. El servidor incluido exige el mismo origen y no admite conectar directamente una página de GitHub Pages con cookies entre dominios; para ello haría falta otro diseño de despliegue.
 
 ## Editar información pública
 
