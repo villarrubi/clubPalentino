@@ -5,6 +5,7 @@ import {
   Strategy,
   ArrowUpRight,
   CalendarBlank,
+  ChatCircleDots,
   MapPin,
   EnvelopeSimple,
   Clock,
@@ -21,7 +22,7 @@ import {
   ErrorMessage,
   TournamentCard,
 } from "./components";
-import { asset, today, contact, school } from "./data";
+import { today, contact, school } from "./data";
 import { useClub } from "./context";
 import type { Tournament } from "./types";
 import { HomeHero, ChessJourney } from "./ChessJourney";
@@ -358,9 +359,9 @@ export function Contact() {
           </a>
         </div>
         <div className="contact-hero-art" aria-hidden="true">
-          <div className="contact-art-board" />
-          <img src={asset("caballo-staunton.webp")} width="500" height="500" alt="" />
-          <span>PALENCIA · AJEDREZ · CLUB</span>
+          <span className="contact-hero-orbit" />
+          <ChatCircleDots className="contact-hero-symbol" weight="thin" />
+          <span className="contact-art-caption">CADA PARTIDA EMPIEZA CON UN HOLA</span>
         </div>
       </section>
 

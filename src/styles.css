@@ -735,39 +735,37 @@ img {
 .contact-hero-art {
   position: relative;
   display: grid;
-  place-items: end center;
+  place-items: center;
   min-height: 420px;
-  isolation: isolate;
-  background: radial-gradient(circle at 58% 50%, #506d7d 0, #2a4559 52%, #20384c 74%);
+  color: #e5c58c;
 }
-.contact-art-board {
+.contact-hero-orbit {
   position: absolute;
-  width: 370px;
-  height: 370px;
-  top: 11%;
-  left: 9%;
-  transform: rotate(-11deg);
-  background: conic-gradient(#ffffff13 25%, transparent 0 50%, #ffffff13 0 75%, transparent 0) 0 0 / 92px 92px;
-  border: 1px solid #ffffff20;
+  width: 300px;
+  height: 300px;
+  border: 1px solid #6f8797;
+  border-radius: 50%;
 }
-.contact-hero-art img {
-  position: relative;
-  width: min(80%, 410px);
-  height: auto;
-  max-height: 94%;
-  object-fit: contain;
-  object-position: bottom;
-  filter: drop-shadow(18px 24px 18px #0b1f2a75);
-}
-.contact-hero-art > span {
+.contact-hero-orbit::after {
+  content: "";
   position: absolute;
-  right: 25px;
-  bottom: 22px;
-  color: #ffffffb8;
-  font-size: 0.57rem;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  writing-mode: vertical-rl;
+  inset: 24px -28px;
+  border: 1px solid #49657a;
+  border-radius: 50%;
+  transform: rotate(-35deg);
+}
+.contact-hero-symbol {
+  width: 160px;
+  height: 160px;
+  transform: rotate(-8deg);
+}
+.contact-art-caption {
+  position: absolute;
+  bottom: 48px;
+  color: #bdcbd4;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-align: center;
 }
 .contact-channels {
   padding-top: 74px;
@@ -1898,16 +1896,17 @@ textarea {
   .contact-hero-art {
     min-height: 240px;
   }
-  .contact-art-board {
-    width: 270px;
-    height: 270px;
-    top: -10px;
-    left: calc(50% - 135px);
-    background-size: 68px 68px;
+  .contact-hero-orbit {
+    width: 180px;
+    height: 180px;
   }
-  .contact-hero-art img {
-    width: 210px;
-    max-height: 245px;
+  .contact-hero-symbol {
+    width: 100px;
+    height: 100px;
+  }
+  .contact-art-caption {
+    bottom: 20px;
+    font-size: 0.52rem;
   }
   .contact-channels {
     padding-top: 55px;
