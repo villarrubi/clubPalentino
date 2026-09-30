@@ -2,6 +2,8 @@
 
 Esta guía usa un servidor Linux con Docker Compose, un dominio y una única instancia de la aplicación. Web y API comparten origen, con HTTPS automático mediante Caddy. GitHub Pages por sí solo no ejecuta el servidor.
 
+Si el servidor ya está instalado y solo quieres publicar cambios de código, utiliza la [guía de actualización](ACTUALIZAR.md).
+
 Dominio previsto: **clubpalentinoajedrez.es**, ya incluido en `.env.example`. El DNS debe apuntar al servidor que ejecute Docker; indicar el dominio en esta plantilla no cambia el DNS ni activa la API en GitHub Pages.
 
 ## 1. Preparar y comprobar

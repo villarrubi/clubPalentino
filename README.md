@@ -1,8 +1,10 @@
 # Club Palentino de Ajedrez
 
-Web del club, Escuela Club Palentino y biblioteca de materiales. React + TypeScript + Vite, con servidor Node.js 24 y SQLite. Despliegue completo con Docker y HTTPS; GitHub Pages conserva únicamente la web pública.
+Web del club, Escuela Club Palentino y biblioteca de materiales. React + TypeScript + Vite, con servidor Node.js 24 y SQLite. Despliegue completo en OVH con Docker y HTTPS.
 
-Web: https://villarrubi.github.io/clubPalentino/
+**Web del club:** https://clubpalentinoajedrez.es/
+
+**¿Has cambiado el código y quieres publicarlo? → [Guía paso a paso para actualizar la web](docs/ACTUALIZAR.md).** Incluye cómo subir los cambios a GitHub, conectar desde Windows y actualizar OVH conservando los datos.
 
 ## Contenido
 
@@ -53,7 +55,9 @@ Playwright comprueba escritorio y móvil: navegación, enlaces profundos, conten
 
 ## Publicación
 
-Cada push a `main` ejecuta `.github/workflows/deploy.yml`: instala dependencias, compila, ejecuta las pruebas y publica `dist` en GitHub Pages. En Settings → Pages, la fuente debe ser GitHub Actions. Las rutas con `#` permiten recargar y compartir páginas sin reglas de servidor.
+La web de producción se ejecuta en el VPS de OVH. Un push a GitHub **no actualiza automáticamente el servidor**: sigue la [guía de actualización](docs/ACTUALIZAR.md).
+
+El repositorio conserva el workflow `.github/workflows/deploy.yml`, que compila, ejecuta pruebas e intenta publicar los archivos estáticos en GitHub Pages. Ese despliegue es independiente de OVH y su disponibilidad depende de la configuración y el plan de GitHub para el repositorio privado. La dirección `github.io` no es la aplicación completa. Las rutas con `#` permiten recargar y compartir páginas sin reglas de servidor.
 
 ## Despliegue completo y usuarios
 
