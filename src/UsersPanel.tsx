@@ -5,11 +5,11 @@ import { ErrorMessage, Loading, Modal } from './components';
 import { roleNames, type StaffUser, type StaffUserChanges } from './types';
 import { sessionExpiredEvent } from './security';
 
-type Editor = { mode: 'create' } | { mode: 'edit' | 'password' | 'status'; user: StaffUser };
+type Editor = { mode: 'create' } | { mode: 'class-password' } | { mode: 'edit' | 'password' | 'status'; user: StaffUser };
 
 function UserForm({ editor, done, pending }: { editor: Editor; done: () => void; pending: (busy: boolean) => void }) {
   const { repository, notify } = useClub();
-  const user = editor.mode === 'create' ? undefined : editor.user;
+  const user = 'user' in editor ? editor.user : undefined;
   const [name, setName] = useState(user?.name ?? '');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'teacher' | 'admin'>(user?.role ?? 'teacher');
@@ -18,7 +18,7 @@ function UserForm({ editor, done, pending }: { editor: Editor; done: () => void;
   const [currentPassword, setCurrentPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const needsPassword = editor.mode === 'create' || editor.mode === 'password';
+  const needsPassword = editor.mode === 'create' || editor.mode === 'password' || editor.mode === 'class-password';
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError('');
@@ -26,6 +26,7 @@ function UserForm({ editor, done, pending }: { editor: Editor; done: () => void;
     setBusy(true); pending(true);
     try {
       if (editor.mode === 'create') await repository.createUser({ name, email, role, password, currentPassword });
+      else if (editor.mode === 'class-password') await repository.updateClassPassword({ password, currentPassword });
       else {
         const changes: StaffUserChanges = editor.mode === 'edit' ? { name, role, currentPassword }
           : editor.mode === 'password' ? { password, currentPassword } : { active: !editor.user.active, currentPassword };
@@ -35,12 +36,13 @@ function UserForm({ editor, done, pending }: { editor: Editor; done: () => void;
         window.dispatchEvent(new Event(sessionExpiredEvent));
         location.hash = '/acceso-equipo';
         notify('Cuenta actualizada. Vuelve a entrar con tus credenciales.');
-      } else notify(editor.mode === 'create' ? 'Cuenta creada. Facilita las credenciales a su titular por un canal privado.' : 'Cuenta actualizada y sesiones anteriores cerradas.');
+      } else notify(editor.mode === 'class-password' ? 'Contraseña de las clases actualizada. Las sesiones anteriores del alumnado se han cerrado.' : editor.mode === 'create' ? 'Cuenta creada. Facilita las credenciales a su titular por un canal privado.' : 'Cuenta actualizada y sesiones anteriores cerradas.');
       done();
     } catch (error) { setError((error as Error).message); }
     finally { setBusy(false); pending(false); setPassword(''); setRepeat(''); setCurrentPassword(''); }
   }
   return <form className="editor-form" onSubmit={submit}>
+    {editor.mode === 'class-password' && <p>La nueva contraseña será compartida por todos los alumnos de ambos niveles. Al guardar, se cerrarán sus sesiones anteriores. Comunícales la nueva contraseña para que puedan volver a entrar.</p>}
     {(editor.mode === 'create' || editor.mode === 'edit') && <>
       <label>Nombre<input required autoFocus maxLength={100} autoComplete="off" value={name} onChange={(e) => setName(e.target.value)} disabled={busy} /></label>
       {editor.mode === 'create' ? <label>Correo electrónico<input required type="email" maxLength={254} autoComplete="off" value={email} onChange={(e) => setEmail(e.target.value)} disabled={busy} /></label>
@@ -91,11 +93,15 @@ export function UsersPanel() {
   function done() { setEditor(null); setRevision((value) => value + 1); }
   const filtered = users.filter((user) => `${user.name} ${user.email}`.toLocaleLowerCase('es').includes(query.toLocaleLowerCase('es')));
   return <section aria-labelledby="users-title" className="users-panel">
+    <section className="class-access-settings" aria-labelledby="class-access-title">
+      <div><h2 id="class-access-title">Acceso del alumnado</h2>
+        <p>Todos los alumnos acceden a las clases con una contraseña compartida.</p></div>
+      <button className="button button-secondary" onClick={() => setEditor({ mode: 'class-password' })}>Cambiar contraseña de las clases</button>
+    </section>
     <div className="users-heading"><div><h2 id="users-title">Usuarios del equipo</h2>
       <p>Crea cuentas personales y decide quién puede gestionar el club.</p></div>
       <button className="button" onClick={() => setEditor({ mode: 'create' })}><Plus aria-hidden="true" />Nuevo usuario</button>
     </div>
-    <p className="field-help">Los alumnos siguen entrando con la contraseña compartida de las clases. No necesitan una cuenta en esta lista.</p>
     <label className="search-field"><MagnifyingGlass aria-hidden="true" /><span className="sr-only">Buscar usuarios</span>
       <input type="search" placeholder="Buscar por nombre o correo…" value={query} onChange={(e) => setQuery(e.target.value)} /></label>
     {loading ? <Loading /> : error ? <><ErrorMessage>{error}</ErrorMessage><button className="button button-secondary" onClick={() => setRevision((n) => n + 1)}>Reintentar</button></>
@@ -108,7 +114,7 @@ export function UsersPanel() {
           {!user.isCurrent && <button className="button button-secondary" aria-label={`${user.active ? 'Desactivar' : 'Reactivar'} ${user.name}`} onClick={() => setEditor({ mode: 'status', user })}>{user.active ? 'Desactivar' : 'Reactivar'}</button>}
         </div>
       </article>)}</div>}
-    {editor && <Modal title={editor.mode === 'create' ? 'Nuevo usuario' : editor.mode === 'edit' ? 'Editar usuario' : editor.mode === 'password' ? 'Cambiar contraseña' : editor.user.active ? 'Desactivar usuario' : 'Reactivar usuario'}
+    {editor && <Modal title={editor.mode === 'class-password' ? 'Cambiar contraseña de las clases' : editor.mode === 'create' ? 'Nuevo usuario' : editor.mode === 'edit' ? 'Editar usuario' : editor.mode === 'password' ? 'Cambiar contraseña' : 'user' in editor && editor.user.active ? 'Desactivar usuario' : 'Reactivar usuario'}
       close={() => { if (!busy) setEditor(null); }}><UserForm editor={editor} done={done} pending={setBusy} /></Modal>}
   </section>;
 }

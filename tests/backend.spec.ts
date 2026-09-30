@@ -153,6 +153,41 @@ test('usuarios: altas, permisos, contraseñas, bajas y reactivación desde el pa
   }
 });
 
+test('alumnado: el administrador cambia la contraseña compartida desde el panel', async ({ page }) => {
+  await page.goto(`${origin}/#/acceso-equipo`);
+  await page.getByLabel('Correo electrónico').fill('admin@example.test');
+  await page.getByLabel('Contraseña', { exact: true }).fill(password);
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await page.getByRole('button', { name: 'Usuarios', exact: true }).click();
+  await page.getByRole('button', { name: 'Cambiar contraseña de las clases', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  const replacement = randomBytes(24).toString('base64url');
+  await dialog.getByLabel('Nueva contraseña', { exact: true }).fill(replacement);
+  await dialog.getByLabel('Repite la nueva contraseña').fill(password);
+  await dialog.getByLabel('Tu contraseña actual de administrador').fill(password);
+  await dialog.getByRole('button', { name: 'Guardar cambios' }).click();
+  await expect(dialog.getByRole('alert')).toContainText('Las nuevas contraseñas no coinciden');
+  await dialog.getByLabel('Repite la nueva contraseña').fill(replacement);
+  await dialog.getByLabel('Tu contraseña actual de administrador').fill('incorrect-password');
+  await dialog.getByRole('button', { name: 'Guardar cambios' }).click();
+  await expect(dialog.getByRole('alert')).toContainText('Tu contraseña actual no es correcta');
+  await dialog.getByLabel('Nueva contraseña', { exact: true }).fill(replacement);
+  await dialog.getByLabel('Repite la nueva contraseña').fill(replacement);
+  await dialog.getByLabel('Tu contraseña actual de administrador').fill(password);
+  expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
+  await dialog.getByRole('button', { name: 'Guardar cambios' }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Acceso del alumnado' })).toBeVisible();
+  expect(await page.evaluate(() => JSON.stringify({ ...localStorage, ...sessionStorage }))).not.toContain(replacement);
+  await page.getByRole('button', { name: 'Cerrar sesión', exact: true }).click();
+  await page.getByLabel('Contraseña de las clases').fill(password);
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await expect(page.getByRole('alert')).toBeVisible();
+  await page.getByLabel('Contraseña de las clases').fill(replacement);
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click();
+  await expect(page).toHaveURL(/#\/aula$/);
+});
+
 test('usuarios: cambiar mi contraseña cierra la sesión y permite entrar con la nueva', async ({ page }) => {
   await page.goto(`${origin}/#/acceso-equipo`);
   await page.getByLabel('Correo electrónico').fill('admin@example.test');

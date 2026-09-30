@@ -1202,6 +1202,17 @@ textarea {
   margin-bottom: 16px;
 }
 .users-heading h2 { margin-bottom: 8px; }
+.class-access-settings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding-bottom: 28px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+}
+.class-access-settings h2 { margin-bottom: 8px; }
 .users-panel > .search-field { margin: 24px 0; max-width: 560px; }
 .users-list { display: grid; gap: 16px; }
 .user-card {
@@ -1468,6 +1479,7 @@ textarea {
   color: var(--muted);
   font-size: 0.88rem;
 }
+.enrollment-contact .text-link { overflow-wrap: anywhere; min-width: 0; }
 .contact-value {
   font-size: 0.93rem;
   color: var(--accent);

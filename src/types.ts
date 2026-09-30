@@ -33,6 +33,10 @@ export type StaffUserChanges = Partial<Pick<StaffUser, "name" | "role" | "active
   password?: string;
   currentPassword: string;
 };
+export interface ClassPasswordChange {
+  password: string;
+  currentPassword: string;
+}
 export interface Material {
   id: string;
   title: string;
@@ -83,6 +87,7 @@ export interface Repository {
   users(): Promise<StaffUser[]>;
   createUser(input: NewStaffUser): Promise<void>;
   updateUser(id: string, input: StaffUserChanges): Promise<void>;
+  updateClassPassword(input: ClassPasswordChange): Promise<void>;
   materials(): Promise<Material[]>;
   saveMaterial(input: MaterialInput, file?: File, id?: string): Promise<void>;
   deleteMaterial(id: string): Promise<void>;

@@ -3,6 +3,7 @@ import type {
   StaffUser,
   NewStaffUser,
   StaffUserChanges,
+  ClassPasswordChange,
   NewsArticle,
   NewsInput,
   Session,
@@ -189,6 +190,7 @@ class DemoRepository implements Repository {
   async users(): Promise<StaffUser[]> { return this.denyAccess(); }
   async createUser(_input: NewStaffUser) { this.denyAccess(); }
   async updateUser(_id: string, _input: StaffUserChanges) { this.denyAccess(); }
+  async updateClassPassword(_input: ClassPasswordChange) { this.denyAccess(); }
   async saveMaterial(_input: MaterialInput, _file?: File, _id?: string) { this.denyAccess(); }
   async deleteMaterial(_id: string) { this.denyAccess(); }
   async download(_id: string): Promise<Blob> { return this.denyAccess(); }
@@ -257,6 +259,9 @@ class RemoteRepository implements Repository {
     await this.request("/session", { method: "DELETE" });
   }
   async users() { return this.request<StaffUser[]>("/users"); }
+  async updateClassPassword(input: ClassPasswordChange) {
+    await this.request('/users/class-password', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+  }
   async createUser(input: NewStaffUser) {
     await this.request('/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
   }

@@ -32,8 +32,9 @@ Todas las respuestas API usan `Cache-Control: no-store`. CSP restringe scripts y
 | GET /users | Admin | Array `{id,email,name,role,active,isCurrent}`; nunca hashes o sesiones |
 | POST /users | Admin + contraseña actual | JSON `{email,name,role,password,currentPassword}`; 204 |
 | PATCH /users/:id | Admin + contraseña actual | JSON `{currentPassword,name?,role?,active?,password?}`; 204 |
+| PATCH /users/class-password | Admin + contraseña actual | JSON `{password,currentPassword}`; 204; cambia la contraseña compartida de las clases |
 
-Solo cuentas `teacher` y `admin`; el acceso compartido `@class` no se lista ni puede modificarse mediante estas rutas. No hay DELETE: las bajas usan `active:false` y conservan contenido. El correo se normaliza a minúsculas y no es editable; no se sobrescriben cuentas existentes, incluidas las desactivadas (409). Nombre obligatorio hasta 100 caracteres; contraseñas nuevas entre 15 y 128; `active` debe ser booleano; se rechazan campos extra.
+El listado, alta y edición por ID solo admiten cuentas `teacher` y `admin`. El acceso compartido `@class` no se lista; su contraseña se modifica exclusivamente mediante `/users/class-password`, disponible en Administración → Usuarios → Acceso del alumnado. Esta operación revoca todas las sesiones de alumnos, conserva el rol y el estado de la cuenta y devuelve 409 si el acceso aún no está configurado. No hay DELETE: las bajas usan `active:false` y conservan contenido. El correo se normaliza a minúsculas y no es editable; no se sobrescriben cuentas existentes, incluidas las desactivadas (409). Nombre obligatorio hasta 100 caracteres; contraseñas nuevas entre 15 y 128; `active` debe ser booleano; se rechazan campos extra.
 
 Cada mutación verifica `currentPassword` del administrador, con límite de 30 solicitudes por administrador/15 minutos. Un error de confirmación devuelve 403 sin cerrar la sesión. Se comparte el máximo de dos operaciones scrypt simultáneas con el login. Tras las operaciones asíncronas se vuelve a comprobar que la sesión y credencial del administrador siguen vigentes. Las escrituras y revocaciones se hacen en una transacción.
 

@@ -200,15 +200,6 @@ export function Classes() {
             <small>Curso 2026/2027. Todos los viernes lectivos.</small>
           </span>
         </div>
-        <a
-          className="button"
-          href={contact.whatsapp}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <WhatsappLogo size={21} aria-hidden="true" />
-          Información e inscripciones
-        </a>
       </div>
       <div className="course-grid">
         <article className="course-card" data-reveal>
@@ -304,7 +295,7 @@ export function Classes() {
       </section>
       <section className="enrollment-contact" data-reveal>
         <div>
-          <h2>Haz tu primera jugada.</h2>
+          <h2>Información e inscripciones</h2>
           <p>
             Contacta con el club para apuntarte o resolver cualquier duda sobre
             las clases.
@@ -323,6 +314,10 @@ export function Classes() {
           <a className="text-link" href={contact.phoneLink}>
             <Phone aria-hidden="true" />
             {contact.phone}
+          </a>
+          <a className="text-link" href={contact.emailLink}>
+            <EnvelopeSimple aria-hidden="true" />
+            {contact.email}
           </a>
         </div>
       </section>

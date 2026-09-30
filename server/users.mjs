@@ -1,7 +1,7 @@
 import express from 'express';
 import { randomUUID } from 'node:crypto';
 import { rateLimit } from 'express-rate-limit';
-import { accountEmail, checkPassword, hashPassword, verifyPassword } from './auth.mjs';
+import { accountEmail, checkPassword, hashPassword, studentEmail, verifyPassword } from './auth.mjs';
 import { transaction } from './store.mjs';
 import { HttpError } from './validation.mjs';
 
@@ -29,8 +29,8 @@ export function userRoutes({ db, allowAdmin, runHash, now }) {
     if (user.role !== 'admin') throw new HttpError(403);
     return user;
   }
-  function validate(body, creating) {
-    const keys = creating ? ['email', 'name', 'role', 'password', 'currentPassword'] : ['name', 'role', 'active', 'password', 'currentPassword'];
+  function validate(body, creating, classes) {
+    const keys = classes ? ['password', 'currentPassword'] : creating ? ['email', 'name', 'role', 'password', 'currentPassword'] : ['name', 'role', 'active', 'password', 'currentPassword'];
     if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).some((key) => !keys.includes(key)))
       throw new AccountError(400, 'Los datos de la cuenta no son válidos.');
     if (typeof body.currentPassword !== 'string' || !body.currentPassword || body.currentPassword.length > 128)
@@ -54,14 +54,14 @@ export function userRoutes({ db, allowAdmin, runHash, now }) {
     if (creating) {
       try { data.email = accountEmail(body.email); } catch { throw new AccountError(400, 'Correo electrónico no válido.'); }
     }
-    if (creating || Object.hasOwn(body, 'password')) {
+    if (creating || classes || Object.hasOwn(body, 'password')) {
       try { checkPassword(body.password); } catch { throw new AccountError(400, 'La nueva contraseña debe tener entre 15 y 128 caracteres.'); }
       data.password = body.password;
     }
     return data;
   }
-  const save = (creating) => async (req, res) => {
-    const data = validate(req.body, creating);
+  const save = (creating, classes = false) => async (req, res) => {
+    const data = validate(req.body, creating, classes);
     const authenticated = actor(req);
     if (!await runHash(() => verifyPassword(req.body.currentPassword, authenticated.password_hash)))
       throw new AccountError(403, 'Tu contraseña actual no es correcta.');
@@ -70,7 +70,12 @@ export function userRoutes({ db, allowAdmin, runHash, now }) {
       // Authorization and account state are checked again after expensive async work.
       const current = actor(req);
       if (current.password_hash !== authenticated.password_hash) throw new HttpError(401);
-      if (creating) {
+      if (classes) {
+        const user = db.prepare("SELECT id FROM users WHERE email = ? AND role = 'student'").get(studentEmail);
+        if (!user) throw new AccountError(409, 'El acceso del alumnado aún no está configurado.');
+        db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(newHash, user.id);
+        db.prepare('DELETE FROM sessions WHERE user_id = ?').run(user.id);
+      } else if (creating) {
         if (db.prepare('SELECT id FROM users WHERE email = ?').get(data.email))
           throw new AccountError(409, 'Ya existe una cuenta con ese correo, aunque esté desactivada.');
         db.prepare('INSERT INTO users(id,email,name,role,password_hash) VALUES(?,?,?,?,?)')
@@ -93,6 +98,7 @@ export function userRoutes({ db, allowAdmin, runHash, now }) {
     res.status(204).end();
   };
   router.post('/', save(true));
+  router.patch('/class-password', save(false, true));
   router.patch('/:id', save(false));
   return router;
 }
