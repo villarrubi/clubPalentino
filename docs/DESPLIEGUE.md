@@ -29,7 +29,7 @@ Abrir `http://127.0.0.1:3000`. Este modo usa una cookie de desarrollo sin `Secur
 
 ## 2. Preparar el servidor
 
-1. Apuntar el registro DNS del dominio al servidor. Si hay registro AAAA, también debe llegar correctamente al servidor.
+1. Apuntar los registros DNS A del dominio y de `www` al servidor. Si hay registros AAAA, también deben llegar correctamente al servidor. Caddy redirige `www` al dominio principal conservando la ruta y solicita certificados para ambos nombres.
 2. Permitir entrada a 80/tcp y 443/tcp (443/udp opcional). Reservar SSH a los responsables. No abrir el puerto 3000 ni publicar la base de datos.
 3. Copiar el proyecto o clonar el repositorio en el servidor, instalar Docker/Compose y copiar `.env.example` a `.env`. Cambiar `DOMAIN` por el dominio real, sin `https://`, ruta ni puerto.
 4. Arrancar:
