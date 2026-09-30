@@ -126,7 +126,7 @@ export function Login({ destination = "/aula" }: { destination?: string }) {
               {busy ? "Accediendo…" : "Entrar"}<ArrowRight aria-hidden="true" />
             </button>
           </form>
-          <a className="login-help" href="#/contacto">¿Necesitas ayuda? Contacta con el club</a>
+          <a className="login-help" href="/contacto">¿Necesitas ayuda? Contacta con el club</a>
           {staff && <a className="login-help" href="#/acceso">Volver al acceso de alumnos</a>}
         </section>
       </div>
@@ -216,7 +216,7 @@ export function Campus({ course }: { course?: Course }) {
   return (
     <div className="container inner-page">
       <div className="area-topline">
-        <a className="text-link" href={course ? "#/aula" : "#/escuela"}>
+        <a className="text-link" href={course ? "#/aula" : "/escuela"}>
           <ArrowLeft aria-hidden="true" />
           {course ? "Todas las clases" : "Información de las clases"}
         </a>

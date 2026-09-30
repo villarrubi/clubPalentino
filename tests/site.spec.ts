@@ -169,7 +169,7 @@ test("las cuatro páginas públicas animan su entrada al navegar", async ({
       .getByRole("navigation", { name: "Enlaces del club" })
       .getByRole("link", { name, exact: true })
       .click();
-    await expect(page).toHaveURL(new RegExp(`#/${route}$`));
+    await expect(page).toHaveURL(new RegExp(`/${route}$`));
     const title = page.locator(".public-page h1");
     await expect(title).toHaveText(heading);
     await expect(title).toHaveCSS("animation-name", "page-intro-arrive");
@@ -290,7 +290,7 @@ test("menú, enlaces profundos y página desconocida", async ({
     .getByRole("navigation", { name: "Navegación principal" })
     .getByRole("link", { name: "Escuela Club Palentino" })
     .click();
-  await expect(page).toHaveURL(/#\/escuela$/);
+  await expect(page).toHaveURL(/\/escuela$/);
   await page.reload();
   await expect(page.locator("main h1")).toHaveText("Escuela Club Palentino");
   await page.goto("/#/inexistente");

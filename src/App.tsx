@@ -23,12 +23,12 @@ const navigation = [
   ["/contacto", "Contacto"],
 ];
 const titleMap: Record<string, string> = {
-  "/": "Inicio",
-  "/escuela": "Escuela Club Palentino",
-  "/clases": "Escuela Club Palentino",
-  "/torneos": "Próximos torneos",
-  "/noticias": "Noticias",
-  "/contacto": "Contacto",
+  "/": "Club de ajedrez en Palencia",
+  "/escuela": "Clases de ajedrez en Palencia",
+  "/clases": "Clases de ajedrez en Palencia",
+  "/torneos": "Torneos de ajedrez en Palencia",
+  "/noticias": "Noticias de ajedrez en Palencia",
+  "/contacto": "Contacto y ubicación",
   "/acceso": "Acceso de alumnos",
   "/acceso-equipo": "Acceso del equipo",
   "/aula": "Área de alumnos",
@@ -37,7 +37,9 @@ const titleMap: Record<string, string> = {
   "/panel": "Panel de gestión",
 };
 function path() {
-  return location.hash.slice(1).split("?")[0] || "/";
+  return location.hash.startsWith("#/")
+    ? location.hash.slice(1).split("?")[0]
+    : location.pathname.replace(/\/$/, "") || "/";
 }
 export default function App() {
   const [route, setRoute] = useState(path);
@@ -167,7 +169,7 @@ export default function App() {
             {navigation.map(([href, label]) => (
               <a
                 key={href}
-                href={`#${href}`}
+                href={href}
                 aria-current={route === href ? "page" : undefined}
                 onClick={() => setMenu(false)}
               >
@@ -214,10 +216,10 @@ export default function App() {
           </div>
           <nav aria-label="Enlaces del club">
             <h2>El club</h2>
-            <a href="#/escuela">Escuela Club Palentino</a>
-            <a href="#/torneos">Próximos torneos</a>
-            <a href="#/noticias">Noticias</a>
-            <a href="#/contacto">Contacto</a>
+            <a href="/escuela">Escuela Club Palentino</a>
+            <a href="/torneos">Próximos torneos</a>
+            <a href="/noticias">Noticias</a>
+            <a href="/contacto">Contacto</a>
           </nav>
           <nav aria-label="Enlaces de acceso">
             <h2>Tu espacio</h2>

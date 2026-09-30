@@ -622,7 +622,7 @@ export function Admin() {
                     <p>{formatDate(article.date)}</p>
                     <a
                       className="text-link"
-                      href={`#/noticias/${encodeURIComponent(article.id)}`}
+                      href={`/noticias/${encodeURIComponent(article.id)}`}
                     >
                       Ver noticia
                     </a>

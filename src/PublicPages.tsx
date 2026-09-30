@@ -127,7 +127,7 @@ export function Home() {
               se cuenta.
             </h2>
           </div>
-          <a className="text-link" href="#/noticias">
+          <a className="text-link" href="/noticias">
             Todas las noticias <ArrowRight aria-hidden="true" />
           </a>
         </div>
@@ -139,7 +139,7 @@ export function Home() {
             <p className="eyebrow">LA AGENDA</p>
             <h2>Próximos torneos.</h2>
           </div>
-          <a className="text-link" href="#/torneos">
+          <a className="text-link" href="/torneos">
             Ver la agenda <ArrowRight aria-hidden="true" />
           </a>
         </div>
@@ -151,7 +151,7 @@ export function Home() {
           <h2>Nos falta tu próxima jugada.</h2>
           <p>Conoce el club y encuentra tu lugar en el tablero.</p>
         </div>
-        <LinkButton href="#/contacto">Contacta con el club</LinkButton>
+        <LinkButton href="/contacto">Contacta con el club</LinkButton>
       </section>
     </>
   );
@@ -429,7 +429,7 @@ export function Contact() {
             <br />
             Un club en Palencia.
           </h3>
-          <a className="text-link" href="#/escuela">
+          <a className="text-link" href="/escuela">
             Escuela Club Palentino <ArrowRight aria-hidden="true" />
           </a>
         </aside>

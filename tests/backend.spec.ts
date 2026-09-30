@@ -29,6 +29,18 @@ test.afterAll(async () => {
   if (dir) rmSync(dir, { recursive: true, force: true });
 });
 
+test('el servidor publica rutas SEO y el sitemap sin JavaScript', async ({ page }) => {
+  const school = await page.request.get(`${origin}/escuela`);
+  expect(school.status()).toBe(200);
+  const html = await school.text();
+  expect(html).toContain('<h1>Escuela Club Palentino</h1>');
+  expect(html).toContain(`rel="canonical" href="${origin}/escuela"`);
+  const sitemap = await page.request.get(`${origin}/sitemap.xml`);
+  expect(await sitemap.text()).toContain(`<loc>${origin}/escuela</loc>`);
+  await page.goto(`${origin}/escuela`);
+  await expect(page.getByRole('heading', { name: 'Escuela Club Palentino', exact: true })).toBeVisible();
+});
+
 test('servidor real: tres accesos, subida, descarga, cookie y permisos', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));

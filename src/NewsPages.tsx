@@ -60,7 +60,7 @@ export function NewsList({ short = false }: { short?: boolean }) {
           {article.imageUrl && (
             <a
               className="news-photo"
-              href={`#/noticias/${encodeURIComponent(article.id)}`}
+              href={`/noticias/${encodeURIComponent(article.id)}`}
               tabIndex={-1}
               aria-hidden="true"
             >
@@ -75,14 +75,14 @@ export function NewsList({ short = false }: { short?: boolean }) {
               <time dateTime={article.date}>{formatDate(article.date)}</time>
             </div>
             <h3>
-              <a href={`#/noticias/${encodeURIComponent(article.id)}`}>
+              <a href={`/noticias/${encodeURIComponent(article.id)}`}>
                 {article.title}
               </a>
             </h3>
             <p>{article.summary}</p>
             <a
               className="text-link"
-              href={`#/noticias/${encodeURIComponent(article.id)}`}
+              href={`/noticias/${encodeURIComponent(article.id)}`}
             >
               Leer noticia <ArrowRight aria-hidden="true" />
             </a>
@@ -102,7 +102,7 @@ export function NewsDetail({ id }: { id: string }) {
   }, [article]);
   return (
     <div className="container inner-page public-page news-detail">
-      <a className="text-link news-back" href="#/noticias">
+      <a className="text-link news-back" href="/noticias">
         Volver a noticias
       </a>
       {loading ? (
@@ -115,7 +115,7 @@ export function NewsDetail({ id }: { id: string }) {
             eyebrow="NOTICIAS"
             title="Esta noticia ya no está disponible."
           />
-          <LinkButton href="#/noticias">Ver noticias</LinkButton>
+          <LinkButton href="/noticias">Ver noticias</LinkButton>
         </>
       ) : (
         <article>

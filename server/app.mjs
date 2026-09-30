@@ -2,10 +2,12 @@ import express from 'express';
 import multer from 'multer';
 import { rateLimit } from 'express-rate-limit';
 import { randomBytes, randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { dummyHash, studentEmail, tokenHash, verifyPassword, accountEmail } from './auth.mjs';
 import { HttpError, materialFile, newsImage, validateEntry } from './validation.mjs';
 import { AccountError, userRoutes } from './users.mjs';
+import { publicPaths, renderSeoPage, renderSitemap } from './seo.mjs';
 
 const hour = 60 * 60 * 1000;
 const sessionLifetime = 8 * hour;
@@ -206,6 +208,26 @@ export function createApp({ db, origin, production = true, trustProxy = false, d
   }
   api.use((_req, _res, next) => next(new HttpError(404)));
   app.get('/config.json', (_req, res) => res.set('Cache-Control', 'no-store').json({ apiBaseUrl: '/api' }));
+  let html;
+  const pageTemplate = () => html ??= readFileSync(resolve(dist, 'index.html'), 'utf8');
+  const publicNews = () => list('news');
+  app.get('/sitemap.xml', (_req, res) => res.type('xml').send(renderSitemap(origin, publicNews())));
+  app.get('/index.html', (_req, res) => res.redirect(301, '/'));
+  app.get('/clases', (_req, res) => res.redirect(301, '/escuela'));
+  for (const route of publicPaths) app.get(route, (req, res) => {
+    if (route !== '/' && req.path !== route) return res.redirect(301, route);
+    res.type('html').set('Cache-Control', 'no-cache').send(renderSeoPage(pageTemplate(), origin, route, {
+      news: route === '/' || route === '/noticias' ? publicNews() : [],
+      tournaments: route === '/torneos' ? list('tournaments') : [],
+    }));
+  });
+  app.get('/noticias/:id', (req, res) => {
+    const article = publicNews().find((item) => item.id === req.params.id);
+    if (!article) return res.status(404).type('html').send('Noticia no encontrada.');
+    const canonicalPath = `/noticias/${encodeURIComponent(article.id)}`;
+    if (req.path !== canonicalPath) return res.redirect(301, canonicalPath);
+    res.type('html').set('Cache-Control', 'no-cache').send(renderSeoPage(pageTemplate(), origin, canonicalPath, { article }));
+  });
   app.use(express.static(dist, { dotfiles: 'deny', index: 'index.html', setHeaders: (res) => res.set('Cache-Control', 'no-cache') }));
   app.use((_req, res) => res.status(404).json({ error: 'No encontrado.' }));
   app.use((error, _req, res, _next) => {

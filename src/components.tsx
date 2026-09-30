@@ -15,7 +15,7 @@ export function Logo({ footer = false }: { footer?: boolean }) {
   return (
     <a
       className={`brand ${footer ? "brand-footer" : ""}`}
-      href="#/"
+      href="/"
     >
       <img src={asset("logo-palentino.jpg")} alt="" width="64" height="64" />
       <span>

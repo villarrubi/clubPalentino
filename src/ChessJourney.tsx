@@ -24,7 +24,7 @@ const chapters = [
       "Todo empieza con un movimiento. Descubre el ajedrez o encuentra nuevas ideas para seguir creciendo, tengas la edad y el nivel que tengas.",
     detail: "Iniciación y avanzado · Curso 2026/2027",
     link: "Conoce la escuela",
-    href: "#/escuela",
+    href: "/escuela",
   },
   {
     title: "Juega.",
@@ -33,7 +33,7 @@ const chapters = [
       "Pon tus ideas sobre el tablero. Disfruta de la competición, encuentra nuevos rivales y comparte esa emoción que solo se vive frente a las piezas.",
     detail: "La próxima partida también puede ser la tuya.",
     link: "Consulta los torneos",
-    href: "#/torneos",
+    href: "/torneos",
   },
   {
     title: "Comparte.",
@@ -42,7 +42,7 @@ const chapters = [
       "Las mejores partidas dejan algo más que un resultado. Dejan conversaciones, amistades y ganas de volver a sentarse al otro lado del tablero.",
     detail: "Un club para todas las edades y todos los niveles.",
     link: "Ven a conocernos",
-    href: "#/contacto",
+    href: "/contacto",
   },
 ];
 
@@ -74,8 +74,8 @@ export function HomeHero() {
             Aprende, juega y comparte tu pasión por el ajedrez.
           </p>
           <div className="button-row">
-            <LinkButton href="#/escuela">Descubre la escuela</LinkButton>
-            <a className="text-link" href="#/torneos">
+            <LinkButton href="/escuela">Descubre la escuela</LinkButton>
+            <a className="text-link" href="/torneos">
               Ver torneos <ArrowUpRight aria-hidden="true" />
             </a>
           </div>
