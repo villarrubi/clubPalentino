@@ -2056,6 +2056,11 @@ html[data-motion="full"] .public-page [data-reveal].reveal-initial {
   animation: page-block-arrive 1.2s cubic-bezier(0.22, 0.65, 0.25, 1) both;
   animation-delay: calc(0.25s + var(--reveal-delay, 0ms));
 }
+html[data-navigation="client"] .public-page > .page-intro > *,
+html[data-navigation="client"] .public-page > article > .page-intro > *,
+html[data-navigation="client"] .public-page [data-reveal].reveal-initial {
+  animation: none !important;
+}
 .public-page [data-reveal="left"] {
   --entry-x: -48px;
   --entry-y: 0px;

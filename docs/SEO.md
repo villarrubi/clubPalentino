@@ -6,4 +6,4 @@ El sitemap de producción en `/sitemap.xml` añade automáticamente las noticias
 
 Tras desplegar en `https://clubpalentinoajedrez.es`, comprobar `/robots.txt`, `/sitemap.xml` y el HTML de `/escuela` y de una noticia. Dar de alta el dominio en Google Search Console y enviar `https://clubpalentinoajedrez.es/sitemap.xml`. Esta última acción requiere acceso a la propiedad del dominio y no se realiza desde el repositorio.
 
-Las descripciones y los datos del curso 2026/2027 están en `server/seo.mjs`; revisarlos al cambiar el curso, horarios, ubicación o teléfono.
+Las descripciones y los datos del curso 2026/2027 están en `server/seo.mjs` y `src/seo.ts`; revisarlos en ambos sitios al cambiar el curso, horarios, ubicación o teléfono.

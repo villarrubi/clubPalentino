@@ -14,6 +14,7 @@ import { Admin } from "./Admin";
 import { NewsDetail } from "./NewsPages";
 import { Intro, LinkButton, Logo, Loading } from "./components";
 import { useScrollReveal } from "./useScrollReveal";
+import { isPublicPath, updatePublicSeo } from "./seo";
 
 const navigation = [
   ["/", "Inicio"],
@@ -60,13 +61,35 @@ export default function App() {
   const menuButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     const navigate = () => {
+      document.documentElement.dataset.navigation = "client";
       setRoute(path());
       setMenu(false);
       window.scrollTo({ top: 0 });
       requestAnimationFrame(() => main.current?.focus({ preventScroll: true }));
     };
+    const handleLink = (event: MouseEvent) => {
+      if (
+        event.defaultPrevented || event.button !== 0 || event.metaKey ||
+        event.ctrlKey || event.shiftKey || event.altKey ||
+        !(event.target instanceof Element)
+      ) return;
+      const link = event.target.closest<HTMLAnchorElement>("a[href]");
+      if (!link || (link.target && link.target !== "_self") || link.hasAttribute("download")) return;
+      const url = new URL(link.href);
+      if (url.origin !== location.origin || url.hash || !isPublicPath(url.pathname)) return;
+      event.preventDefault();
+      if (`${location.pathname}${location.search}${location.hash}` !== `${url.pathname}${url.search}`)
+        history.pushState(null, "", `${url.pathname}${url.search}`);
+      navigate();
+    };
     addEventListener("hashchange", navigate);
-    return () => removeEventListener("hashchange", navigate);
+    addEventListener("popstate", navigate);
+    document.addEventListener("click", handleLink);
+    return () => {
+      removeEventListener("hashchange", navigate);
+      removeEventListener("popstate", navigate);
+      document.removeEventListener("click", handleLink);
+    };
   }, []);
   useEffect(() => {
     document.documentElement.dataset.theme = dark ? "dark" : "light";
@@ -77,7 +100,8 @@ export default function App() {
     }
   }, [dark]);
   useEffect(() => {
-    document.title = `${titleMap[route] ?? "Página no encontrada"} | Club Palentino de Ajedrez`;
+    if (isPublicPath(route)) updatePublicSeo(route);
+    else document.title = `${titleMap[route] ?? "Página no encontrada"} | Club Palentino de Ajedrez`;
   }, [route]);
   useEffect(() => {
     if (!menu) return;

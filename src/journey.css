@@ -130,6 +130,11 @@
 .hero-cover figcaption {
   animation: scene-in 1.5s ease 0.7s both;
 }
+html[data-navigation="client"] .home-hero-copy > *,
+html[data-navigation="client"] .hero-cover-entrance,
+html[data-navigation="client"] .hero-cover figcaption {
+  animation: none !important;
+}
 @keyframes hero-copy-in {
   from {
     opacity: 0;

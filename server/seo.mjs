@@ -79,7 +79,7 @@ export function renderSeoPage(template, origin, pathname, { article, news = [], 
     `<meta name="twitter:title" content="${escapeHtml(page.title)}" />`,
     `<meta name="twitter:description" content="${escapeHtml(page.description)}" />`,
     `<meta name="twitter:image" content="${escapeHtml(image)}" />`,
-    ...(extra ? [`<script type="application/ld+json">${JSON.stringify(extra).replace(/</g, '\\u003c')}</script>`] : []),
+    ...(extra ? [`<script id="article-structured-data" type="application/ld+json">${JSON.stringify(extra).replace(/</g, '\\u003c')}</script>`] : []),
   ].join('\n');
   const links = '<nav aria-label="Secciones del club"><a href="/escuela">Escuela</a> · <a href="/torneos">Torneos</a> · <a href="/noticias">Noticias</a> · <a href="/contacto">Contacto</a></nav>';
   const articles = pathname === '/noticias' || pathname === '/' ? news.map((item) =>

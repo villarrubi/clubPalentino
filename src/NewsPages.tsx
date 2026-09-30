@@ -4,6 +4,7 @@ import { useClub } from "./context";
 import { Empty, ErrorMessage, Intro, LinkButton, Loading } from "./components";
 import { formatDate } from "./data";
 import type { NewsArticle } from "./types";
+import { updatePublicSeo } from "./seo";
 
 function useNews() {
   const { repository } = useClub();
@@ -97,8 +98,7 @@ export function NewsDetail({ id }: { id: string }) {
   const { items, loading, error } = useNews();
   const article = items.find((item) => encodeURIComponent(item.id) === id);
   useEffect(() => {
-    if (article)
-      document.title = `${article.title} | Club Palentino de Ajedrez`;
+    if (article) updatePublicSeo(`/noticias/${encodeURIComponent(article.id)}`, article);
   }, [article]);
   return (
     <div className="container inner-page public-page news-detail">

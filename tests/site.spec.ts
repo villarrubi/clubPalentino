@@ -155,10 +155,11 @@ test("entradas laterales de los tres capítulos y enlaces accesibles", async ({
   await expect(page.locator(".hero-cover-image")).toHaveCount(0);
 });
 
-test("las cuatro páginas públicas animan su entrada al navegar", async ({
+test("las páginas públicas cambian sin recarga ni parpadeo", async ({
   page,
 }, testInfo) => {
   await page.goto("/");
+  await page.evaluate(() => { document.body.dataset.navigationMarker = "kept"; });
   for (const [name, route, heading] of [
     ["Escuela Club Palentino", "escuela", "Escuela Club Palentino"],
     ["Próximos torneos", "torneos", "Próximos torneos."],
@@ -170,12 +171,11 @@ test("las cuatro páginas públicas animan su entrada al navegar", async ({
       .getByRole("link", { name, exact: true })
       .click();
     await expect(page).toHaveURL(new RegExp(`/${route}$`));
+    await expect(page.locator("body")).toHaveAttribute("data-navigation-marker", "kept");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp(`/${route}$`));
     const title = page.locator(".public-page h1");
     await expect(title).toHaveText(heading);
-    await expect(title).toHaveCSS("animation-name", "page-intro-arrive");
-    expect(
-      await title.evaluate((el) => Number(getComputedStyle(el).opacity)),
-    ).toBeLessThan(1);
+    await expect(title).toHaveCSS("animation-name", "none");
     await expect(title).toHaveCSS("opacity", "1");
     const blocks = page.locator(".public-page [data-reveal]");
     expect(await blocks.count()).toBeGreaterThan(0);
@@ -195,8 +195,24 @@ test("las cuatro páginas públicas animan su entrada al navegar", async ({
   );
   await expect(page.locator(".public-page h1")).toHaveCSS(
     "animation-name",
-    "page-intro-arrive",
+    "none",
   );
+});
+
+test("una noticia conserva la navegación fluida y actualiza sus metadatos", async ({ page }) => {
+  await page.goto("/noticias");
+  const articleLink = page.getByRole("heading", { name: /140 jugadores/ }).getByRole("link");
+  await expect(articleLink).toBeVisible();
+  await page.evaluate(() => { document.body.dataset.navigationMarker = "kept"; });
+  await articleLink.click();
+  await expect(page).toHaveURL(/\/noticias\/memorial-alberto-acero$/);
+  await expect(page.locator("body")).toHaveAttribute("data-navigation-marker", "kept");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/noticias\/memorial-alberto-acero$/);
+  await expect(page).toHaveTitle(/140 jugadores participan/);
+  await expect.poll(() => page.locator('#article-structured-data').evaluate((element) => element.textContent)).toContain('"@type":"Article"');
+  await page.goBack();
+  await expect(page).toHaveURL(/\/noticias$/);
+  await expect(page.locator('#article-structured-data')).toHaveCount(0);
 });
 
 test("las noticias que llegan después de la carga también se animan", async ({
