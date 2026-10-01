@@ -70,9 +70,7 @@ export function NewsList({ short = false }: { short?: boolean }) {
           )}
           <div className="news-copy">
             <div className="meta">
-              <span className="tag">
-                {article.source || "Actualidad del club"}
-              </span>
+              {article.source && <span className="tag">{article.source}</span>}
               <time dateTime={article.date}>{formatDate(article.date)}</time>
             </div>
             <h3>
